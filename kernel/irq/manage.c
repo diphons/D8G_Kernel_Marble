@@ -281,6 +281,8 @@ int irq_do_set_affinity(struct irq_data *data, const struct cpumask *mask,
 		prog_mask = mask;
 	}
 
+	/* IRQs only run on the first CPU in the affinity mask; reflect that */
+	mask = cpumask_of(cpumask_first(mask));
 	/*
 	 * Make sure we only provide online CPUs to the irqchip,
 	 * unless we are being asked to force the affinity (in which
