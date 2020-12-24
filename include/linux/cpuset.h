@@ -163,6 +163,8 @@ static inline void set_mems_allowed(nodemask_t nodemask)
 }
 
 extern void cpuset_hotplug_workfn(struct work_struct *work);
+void do_hp_cpuset(void);
+void do_lp_cpuset(void);
 
 #else /* !CONFIG_CPUSETS */
 
