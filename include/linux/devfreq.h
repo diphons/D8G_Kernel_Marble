@@ -189,6 +189,8 @@ struct devfreq {
 	struct dev_pm_qos_request user_max_freq_req;
 	unsigned long scaling_min_freq;
 	unsigned long scaling_max_freq;
+	bool is_boost_device;
+	bool max_boost;
 	bool stop_polling;
 
 	unsigned long suspend_freq;
