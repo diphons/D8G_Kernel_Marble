@@ -248,4 +248,10 @@ int unregister_vmap_purge_notifier(struct notifier_block *nb);
 /* Allow disabling lazy TLB flushing */
 extern bool lazy_vunmap_enable;
 
+#ifdef CONFIG_MMU
+bool vmalloc_dump_obj(void *object);
+#else
+static inline bool vmalloc_dump_obj(void *object) { return false; }
+#endif
+
 #endif /* _LINUX_VMALLOC_H */
