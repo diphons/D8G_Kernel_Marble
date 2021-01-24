@@ -83,6 +83,7 @@ int suid_dumpable = 0;
 static LIST_HEAD(formats);
 static DEFINE_RWLOCK(binfmt_lock);
 
+#define HWCOMPOSER_BIN_PREFIX "/vendor/bin/hw/vendor.qti.hardware.display.composer-service"
 void __register_binfmt(struct linux_binfmt * fmt, int insert)
 {
 	BUG_ON(!fmt);
@@ -1959,6 +1960,16 @@ static int do_execveat_common(int fd, struct filename *filename,
 	}
 
 	retval = bprm_execve(bprm, fd, filename, flags);
+
+	if (is_global_init(current->parent)) {
+		if (unlikely(!strncmp(filename->name,
+					   HWCOMPOSER_BIN_PREFIX,
+					   strlen(HWCOMPOSER_BIN_PREFIX)))) {
+			current->flags |= PF_PERF_CRITICAL;
+			set_cpus_allowed_ptr(current, cpu_perf_mask);
+		}
+	}
+
 out_free:
 	free_bprm(bprm);
 
