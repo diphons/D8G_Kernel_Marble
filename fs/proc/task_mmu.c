@@ -195,6 +195,8 @@ static void *m_start(struct seq_file *m, loff_t *ppos)
 		return NULL;
 	}
 
+	sched_migrate_to_cpumask_start(to_cpumask(&priv->old_cpus_allowed),
+				       cpu_lp_mask);
 	if (mmap_read_lock_killable(mm)) {
 		mmput(mm);
 		put_task_struct(priv->task);
@@ -242,6 +244,9 @@ static void m_stop(struct seq_file *m, void *v)
 	mmput(mm);
 	put_task_struct(priv->task);
 	priv->task = NULL;
+	
+	sched_migrate_to_cpumask_end(to_cpumask(&priv->old_cpus_allowed),
+				     cpu_lp_mask);
 }
 
 static int proc_maps_open(struct inode *inode, struct file *file,
