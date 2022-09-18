@@ -896,8 +896,15 @@ config ARCH_HAS_HUGEPD
 config MAPPING_DIRTY_HELPERS
         bool
 
-source "mm/damon/Kconfig"
+config LRU_GEN
+	bool "Multi-Gen LRU"
+	depends on MMU
+	# make sure page->flags has enough spare bits
+	depends on 64BIT || !SPARSEMEM || SPARSEMEM_VMEMMAP
+	help
+	  A high performance LRU implementation to overcommit memory.
 
+source "mm/damon/Kconfig"
 source "mm/oplus_mm/Kconfig"
 
 endmenu
