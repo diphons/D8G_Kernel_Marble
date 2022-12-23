@@ -6,3 +6,7 @@ obj-$(CONFIG_ANDROID_BINDER_IPC)	+= binder.o binder_alloc.o
 obj-$(CONFIG_ANDROID_BINDER_IPC_SELFTEST) += binder_alloc_selftest.o
 obj-$(CONFIG_ANDROID_DEBUG_SYMBOLS)	+= debug_symbols.o
 obj-$(CONFIG_ANDROID_VENDOR_HOOKS) += vendor_hooks.o
+ifeq ($(CONFIG_PSI),y)
+else
+obj-y		+= psi.o
+endif
