@@ -898,4 +898,6 @@ config MAPPING_DIRTY_HELPERS
 
 source "mm/damon/Kconfig"
 
+source "mm/oplus_mm/Kconfig"
+
 endmenu
