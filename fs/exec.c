@@ -64,6 +64,7 @@
 #include <linux/compat.h>
 #include <linux/vmalloc.h>
 #include <linux/io_uring.h>
+#include <linux/hwui_mon.h>
 
 #include <linux/uaccess.h>
 #include <asm/mmu_context.h>
@@ -2002,6 +2003,7 @@ int kernel_execve(const char *kernel_filename,
 	if (retval < 0)
 		goto out_free;
 
+	hwui_mon_handle_exec(filename);
 	retval = bprm_execve(bprm, fd, filename, 0);
 out_free:
 	free_bprm(bprm);
