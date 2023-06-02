@@ -229,6 +229,9 @@ DECLARE_HOOK(android_vh_tune_mmap_readaround,
 DECLARE_RESTRICTED_HOOK(android_rvh_handle_pte_fault_end,
 	TP_PROTO(struct vm_fault *vmf, unsigned long highest_memmap_pfn),
 	TP_ARGS(vmf, highest_memmap_pfn), 1);
+DECLARE_HOOK(android_vh_no_iommu_config,
+	TP_PROTO(struct device *dev),
+	TP_ARGS(dev));
 DECLARE_HOOK(android_vh_handle_pte_fault_end,
 	TP_PROTO(struct vm_fault *vmf, unsigned long highest_memmap_pfn),
 	TP_ARGS(vmf, highest_memmap_pfn));

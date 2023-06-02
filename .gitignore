@@ -165,5 +165,8 @@ arch/arm/boot/dts/vendor
 # Documentation toolchain
 sphinx_*/
 
+# Xiaomi Add
+drivers/misc/hwid/
+
 # Custom
 /build.sh
