@@ -15,6 +15,7 @@
 #include <linux/nospec.h>
 
 #include <linux/kcov.h>
+#include <linux/irq.h>
 #include <linux/scs.h>
 
 #include <asm/switch_to.h>
