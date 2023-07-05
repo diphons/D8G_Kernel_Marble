@@ -134,8 +134,22 @@ extern int bprm_change_interp(const char *interp, struct linux_binprm *bprm);
 int copy_string_kernel(const char *arg, struct linux_binprm *bprm);
 extern void set_binfmt(struct linux_binfmt *new);
 extern ssize_t read_code(struct file *, unsigned long, loff_t, size_t);
+bool task_is_zygote(struct task_struct *task);
 
 int kernel_execve(const char *filename,
 		  const char *const *argv, const char *const *envp);
+
+static inline bool task_is_booster(struct task_struct *tsk)
+{
+	char comm[sizeof(tsk->comm)];
+
+	get_task_comm(comm, tsk);
+	return !strcmp(comm, "init") || !strcmp(comm, "NodeLooperThrea") ||
+	       !strcmp(comm, "power@1.2-servi") ||
+	       !strcmp(comm, "power@1.3-servi") ||
+	       !strcmp(comm, "perf@1.0-servic") ||
+	       !strcmp(comm, "perf@2.0-servic") ||
+	       !strcmp(comm, "init.qcom.post_");
+}
 
 #endif /* _LINUX_BINFMTS_H */
