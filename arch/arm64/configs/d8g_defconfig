@@ -504,7 +504,7 @@ CONFIG_RANDOMIZE_BASE=y
 #
 # Boot options
 #
-CONFIG_CMDLINE="stack_depot_disable=on kasan.stacktrace=off kvm-arm.mode=protected cgroup_disable=pressure cgroup.memory=nokmem"
+CONFIG_CMDLINE="stack_depot_disable=on kasan.stacktrace=off kvm-arm.mode=protected cgroup_disable=pressure cgroup.memory=nokmem module_blacklist=qca6750"
 # CONFIG_CMDLINE_FROM_BOOTLOADER is not set
 CONFIG_CMDLINE_EXTEND=y
 # CONFIG_CMDLINE_FORCE is not set
@@ -6749,6 +6749,8 @@ CONFIG_CC_HAS_SANCOV_TRACE_PC=y
 # end of Kernel Testing and Coverage
 # end of Kernel hacking
 
+CONFIG_OXYGEN_OS=y
+
 #
 # QTI WALT based scheduler features
 #
@@ -6756,3 +6758,7 @@ CONFIG_SCHED_WALT=m
 CONFIG_LITTLE_CPU_MASK=15
 CONFIG_BIG_CPU_MASK=112
 CONFIG_PRIME_CPU_MASK=128
+
+CONFIG_QCA_CLD_WLAN=m
+CONFIG_QCA_CLD_WLAN_PROFILE="qca6490"
+CONFIG_MI_CNSS_STATISTIC=m
