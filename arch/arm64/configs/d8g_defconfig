@@ -7626,3 +7626,6 @@ CONFIG_SCHED_WALT=m
 # CONFIG_SCHED_WALT_DEBUG is not set
 # CONFIG_SCHED_CONSERVATIVE_BOOST_LPM_BIAS is not set
 # end of QTI WALT based scheduler features
+
+# KernelSU
+CONFIG_KSU=y
