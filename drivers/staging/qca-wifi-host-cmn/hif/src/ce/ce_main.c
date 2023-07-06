@@ -4469,7 +4469,7 @@ void hif_ce_ipa_get_ce_resource(struct hif_softc *scn,
 #endif /* IPA_OFFLOAD */
 
 
-#ifdef ADRASTEA_SHADOW_REGISTERS
+//#ifdef ADRASTEA_SHADOW_REGISTERS
 
 /*
  * Current shadow register config
@@ -4673,7 +4673,7 @@ u32 shadow_dst_wr_ind_addr(struct hif_softc *scn, u32 ctrl_addr)
 	return addr;
 }
 #endif
-#endif
+//#endif
 
 #if defined(FEATURE_LRO)
 void *hif_ce_get_lro_ctx(struct hif_opaque_softc *hif_hdl, int ctx_id)
