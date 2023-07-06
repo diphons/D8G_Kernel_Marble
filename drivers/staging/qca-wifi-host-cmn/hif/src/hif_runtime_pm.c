@@ -23,11 +23,11 @@
 #include "hif.h"
 #include "target_type.h"
 #include "hif_main.h"
-#include "ce_main.h"
-#include "ce_api.h"
-#include "ce_internal.h"
-#include "ce_reg.h"
-#include "ce_bmi.h"
+#include "ce/ce_main.h"
+#include "ce/ce_api.h"
+#include "ce/ce_internal.h"
+#include "ce/ce_reg.h"
+#include "ce/ce_bmi.h"
 #include "regtable.h"
 #include "hif_hw_version.h"
 #include <linux/debugfs.h>
@@ -38,7 +38,7 @@
 #include "mp_dev.h"
 #include "hif_debug.h"
 
-#include "ce_tasklet.h"
+#include "ce/ce_tasklet.h"
 #include "targaddrs.h"
 #include "hif_exec.h"
 

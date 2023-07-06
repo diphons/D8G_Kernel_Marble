@@ -30,6 +30,7 @@
 #include "ce_api.h"
 #include "ce_internal.h"
 #endif
+#include "../../../../qca-wifi-host-cmn/hif/src/hif_exec.h"
 #include "htc_services.h"
 #include "a_types.h"
 #include "dummy.h"

@@ -531,26 +531,26 @@ unsigned int hif_get_dst_ring_read_index(struct hif_softc *scn,
 #define CE1_BASE_ADDRESS         (scn->target_ce_def->d_CE1_BASE_ADDRESS)
 
 
-#ifdef ADRASTEA_SHADOW_REGISTERS
+//#ifdef ADRASTEA_SHADOW_REGISTERS
 #define NUM_SHADOW_REGISTERS 24
 u32 shadow_sr_wr_ind_addr(struct hif_softc *scn, u32 ctrl_addr);
 u32 shadow_dst_wr_ind_addr(struct hif_softc *scn, u32 ctrl_addr);
-#endif
+//#endif
 
 
-#ifdef ADRASTEA_SHADOW_REGISTERS
+//#ifdef ADRASTEA_SHADOW_REGISTERS
 #define CE_SRC_RING_WRITE_IDX_SET(scn, CE_ctrl_addr, n) \
 	A_TARGET_WRITE(scn, shadow_sr_wr_ind_addr(scn, CE_ctrl_addr), n)
 #define CE_DEST_RING_WRITE_IDX_SET(scn, CE_ctrl_addr, n) \
 	A_TARGET_WRITE(scn, shadow_dst_wr_ind_addr(scn, CE_ctrl_addr), n)
 
-#else
+/*#else
 
 #define CE_SRC_RING_WRITE_IDX_SET(scn, CE_ctrl_addr, n) \
 	A_TARGET_WRITE(scn, (CE_ctrl_addr) + SR_WR_INDEX_ADDRESS, (n))
 #define CE_DEST_RING_WRITE_IDX_SET(scn, CE_ctrl_addr, n) \
 	A_TARGET_WRITE(scn, (CE_ctrl_addr) + DST_WR_INDEX_ADDRESS, (n))
-#endif
+#endif*/
 
 /* The write index read is only needed durring initialization because
  * we keep track of the index that was last written.  Thus the register

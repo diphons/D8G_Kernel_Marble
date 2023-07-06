@@ -25,8 +25,8 @@
 #include <cdp_txrx_misc.h>
 #include <dp_tx_desc.h>
 #include <dp_rx.h>
-#include <ce_api.h>
-#include <ce_internal.h>
+#include "../../../../qca-wifi-host-cmn/hif/src/ce/ce_api.h"
+#include "../../../../qca-wifi-host-cmn/hif/src/ce/ce_internal.h"
 #include <wlan_cfg.h>
 
 /**

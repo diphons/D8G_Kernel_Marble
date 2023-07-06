@@ -28,7 +28,7 @@
 #include "hif.h"           /* hif_map_service...*/
 #include "wlan_hdd_main.h" /* hdd_err/warn... */
 #include "qdf_types.h"     /* QDF_MODULE_ID_... */
-#include "ce_api.h"
+#include "../../../../qca-wifi-host-cmn/hif/src/ce/ce_api.h"
 
 /*  guaranteed to be initialized to zero/NULL by the standard */
 static struct qca_napi_data *hdd_napi_ctx;

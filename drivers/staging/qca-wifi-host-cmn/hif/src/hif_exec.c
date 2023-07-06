@@ -18,7 +18,7 @@
  */
 
 #include <hif_exec.h>
-#include <ce_main.h>
+#include "../../../../qca-wifi-host-cmn/hif/src/ce/ce_main.h"
 #include "qdf_module.h"
 #include "qdf_net_if.h"
 /* mapping NAPI budget 0 to internal budget 0

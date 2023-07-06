@@ -2251,12 +2251,10 @@ struct hdd_context {
 	bool dfs_cac_offload;
 	bool reg_offload;
 	bool rcpi_enabled;
-#ifdef FEATURE_WLAN_CH_AVOID
 	struct ch_avoid_ind_type coex_avoid_freq_list;
 	struct ch_avoid_ind_type dnbs_avoid_freq_list;
 	/* Lock to control access to dnbs and coex avoid freq list */
 	struct mutex avoid_freq_lock;
-#endif
 #ifdef WLAN_FEATURE_TSF
 	/* indicate whether tsf has been initialized */
 	qdf_atomic_t tsf_ready_flag;

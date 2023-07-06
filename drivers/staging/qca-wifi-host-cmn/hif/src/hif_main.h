@@ -38,7 +38,7 @@
 #include "qdf_lock.h"
 #include "cepci.h"
 #include "hif.h"
-#include "multibus.h"
+#include "dispatcher/multibus.h"
 #include "hif_unit_test_suspend_i.h"
 #ifdef HIF_CE_LOG_INFO
 #include "qdf_notifier.h"
