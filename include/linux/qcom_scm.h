@@ -472,11 +472,11 @@ static inline int qcom_scm_invoke_callback_response(phys_addr_t out_buf,
 		unsigned int *data)	{ return -ENODEV; }
 
 static inline int qcom_scm_lmh_dcvsh(u32 payload_fn, u32 payload_reg, u32 payload_val,
-			      u64 limit_node, u32 node_id, u64 version);
+			      u64 limit_node, u32 node_id, u64 version)
 		{ return -ENODEV; }
-static inline int qcom_scm_lmh_profile_change(u32 profile_id);
+static inline int qcom_scm_lmh_profile_change(u32 profile_id)
 		{ return -ENODEV; }
-static inline bool qcom_scm_lmh_dcvsh_available(void);
+static inline bool qcom_scm_lmh_dcvsh_available(void)
 		{ return -ENODEV; }
 
 #endif
