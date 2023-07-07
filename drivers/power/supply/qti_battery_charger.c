@@ -617,7 +617,6 @@ static const int wls_prop_map[WLS_PROP_MAX] = {
 	[WLS_CONN_TEMP]		= POWER_SUPPLY_PROP_TEMP,
 };
 
-<<<<<<< HEAD
 static const unsigned int bcdev_usb_extcon_cable[] = {
 	EXTCON_USB,
 	EXTCON_USB_HOST,
@@ -625,8 +624,6 @@ static const unsigned int bcdev_usb_extcon_cable[] = {
 };
 
 /* Standard usb_type definitions similar to power_supply_sysfs.c */
-=======
->>>>>>> 48952ed36228 (Kernel: Xiaomi kernel changes for Redmi Note 12 Turbo  Android T)
 static const char * const power_supply_usb_type_text[] = {
 	"Unknown", "SDP", "DCP", "CDP", "ACA", "C",
 	"PD", "PD_DRP", "PD_PPS", "BrickID", "USB_FLOAT"
@@ -696,11 +693,7 @@ static int battery_chg_fw_write(struct battery_chg_dev *bcdev, void *data,
 
 	down_read(&bcdev->state_sem);
 	if (atomic_read(&bcdev->state) == PMIC_GLINK_STATE_DOWN) {
-<<<<<<< HEAD
-		pr_debug("glink state is down\n");
 		up_read(&bcdev->state_sem);
-=======
->>>>>>> 48952ed36228 (Kernel: Xiaomi kernel changes for Redmi Note 12 Turbo  Android T)
 		return -ENOTCONN;
 	}
 
@@ -710,11 +703,7 @@ static int battery_chg_fw_write(struct battery_chg_dev *bcdev, void *data,
 		rc = wait_for_completion_timeout(&bcdev->fw_buf_ack,
 					msecs_to_jiffies(WLS_FW_WAIT_TIME_MS));
 		if (!rc) {
-<<<<<<< HEAD
-			pr_err("Error, timed out sending message\n");
 			up_read(&bcdev->state_sem);
-=======
->>>>>>> 48952ed36228 (Kernel: Xiaomi kernel changes for Redmi Note 12 Turbo  Android T)
 			return -ETIMEDOUT;
 		}
 
@@ -730,7 +719,6 @@ static int battery_chg_write(struct battery_chg_dev *bcdev, void *data,
 {
 	int rc;
 
-<<<<<<< HEAD
 	/*
 	 * When the subsystem goes down, it's better to return the last
 	 * known values until it comes back up. Hence, return 0 so that
@@ -738,11 +726,7 @@ static int battery_chg_write(struct battery_chg_dev *bcdev, void *data,
 	 */
 	down_read(&bcdev->state_sem);
 	if (atomic_read(&bcdev->state) == PMIC_GLINK_STATE_DOWN) {
-		pr_debug("glink state is down\n");
 		up_read(&bcdev->state_sem);
-=======
-	if (atomic_read(&bcdev->state) == PMIC_GLINK_STATE_DOWN) {
->>>>>>> 48952ed36228 (Kernel: Xiaomi kernel changes for Redmi Note 12 Turbo  Android T)
 		return 0;
 	}
 
@@ -758,11 +742,7 @@ static int battery_chg_write(struct battery_chg_dev *bcdev, void *data,
 		rc = wait_for_completion_timeout(&bcdev->ack,
 					msecs_to_jiffies(BC_WAIT_TIME_MS));
 		if (!rc) {
-<<<<<<< HEAD
-			pr_err("Error, timed out sending message\n");
 			up_read(&bcdev->state_sem);
-=======
->>>>>>> 48952ed36228 (Kernel: Xiaomi kernel changes for Redmi Note 12 Turbo  Android T)
 			mutex_unlock(&bcdev->rw_lock);
 			return -ETIMEDOUT;
 		}
@@ -984,17 +964,12 @@ static void battery_chg_state_cb(void *priv, enum pmic_glink_state state)
 {
 	struct battery_chg_dev *bcdev = priv;
 
-<<<<<<< HEAD
-	pr_debug("state: %d\n", state);
-
 	down_write(&bcdev->state_sem);
 	if (!bcdev->initialized) {
 		pr_warn("Driver not initialized, pmic_glink state %d\n", state);
 		up_write(&bcdev->state_sem);
 		return;
 	}
-=======
->>>>>>> 48952ed36228 (Kernel: Xiaomi kernel changes for Redmi Note 12 Turbo  Android T)
 	atomic_set(&bcdev->state, state);
 	up_write(&bcdev->state_sem);
 
@@ -1449,12 +1424,7 @@ static int battery_chg_callback(void *priv, void *data, size_t len)
 	down_read(&bcdev->state_sem);
 
 	if (!bcdev->initialized) {
-<<<<<<< HEAD
-		pr_debug("Driver initialization failed: Dropping glink callback message: state %d\n",
-			 bcdev->state);
 		up_read(&bcdev->state_sem);
-=======
->>>>>>> 48952ed36228 (Kernel: Xiaomi kernel changes for Redmi Note 12 Turbo  Android T)
 		return 0;
 	}
 
@@ -2108,9 +2078,7 @@ static int battery_chg_init_psy(struct battery_chg_dev *bcdev)
 		devm_power_supply_register(bcdev->dev, &usb_psy_desc, &psy_cfg);
 	if (IS_ERR(bcdev->psy_list[PSY_TYPE_USB].psy)) {
 		rc = PTR_ERR(bcdev->psy_list[PSY_TYPE_USB].psy);
-<<<<<<< HEAD
 		bcdev->psy_list[PSY_TYPE_USB].psy = NULL;
-		pr_err("Failed to register USB power supply, rc=%d\n", rc);
 		return rc;
 	}
 
@@ -2123,7 +2091,6 @@ static int battery_chg_init_psy(struct battery_chg_dev *bcdev)
 		if (IS_ERR(bcdev->psy_list[PSY_TYPE_WLS].psy)) {
 			rc = PTR_ERR(bcdev->psy_list[PSY_TYPE_WLS].psy);
 			bcdev->psy_list[PSY_TYPE_WLS].psy = NULL;
-			pr_err("Failed to register wireless power supply, rc=%d\n", rc);
 			return rc;
 		}
 	}
@@ -2134,16 +2101,6 @@ static int battery_chg_init_psy(struct battery_chg_dev *bcdev)
 	if (IS_ERR(bcdev->psy_list[PSY_TYPE_BATTERY].psy)) {
 		rc = PTR_ERR(bcdev->psy_list[PSY_TYPE_BATTERY].psy);
 		bcdev->psy_list[PSY_TYPE_BATTERY].psy = NULL;
-		pr_err("Failed to register battery power supply, rc=%d\n", rc);
-=======
-		return rc;
-	}
-
-	bcdev->psy_list[PSY_TYPE_WLS].psy =
-		devm_power_supply_register(bcdev->dev, &wls_psy_desc, &psy_cfg);
-	if (IS_ERR(bcdev->psy_list[PSY_TYPE_WLS].psy)) {
-		rc = PTR_ERR(bcdev->psy_list[PSY_TYPE_WLS].psy);
->>>>>>> 48952ed36228 (Kernel: Xiaomi kernel changes for Redmi Note 12 Turbo  Android T)
 		return rc;
 	}
 
@@ -6991,15 +6948,11 @@ static int battery_chg_probe(struct platform_device *pdev)
 	INIT_WORK(&bcdev->subsys_up_work, battery_chg_subsys_up_work);
 	INIT_WORK(&bcdev->usb_type_work, battery_chg_update_usb_type_work);
 	INIT_WORK(&bcdev->battery_check_work, battery_chg_check_status_work);
-<<<<<<< HEAD
-=======
 	INIT_DELAYED_WORK( &bcdev->xm_prop_change_work, generate_xm_charge_uvent);
 	INIT_DELAYED_WORK( &bcdev->charger_debug_info_print_work, xm_charger_debug_info_print_work);
 #if defined(CONFIG_BQ_FG_UPDATE)
 	INIT_DELAYED_WORK( &bcdev->batt_update_work, xm_batt_update_work);
 #endif
-	atomic_set(&bcdev->state, PMIC_GLINK_STATE_UP);
->>>>>>> 48952ed36228 (Kernel: Xiaomi kernel changes for Redmi Note 12 Turbo  Android T)
 	bcdev->dev = dev;
 
 	rc = battery_chg_register_panel_notifier(bcdev);
@@ -7015,14 +6968,7 @@ static int battery_chg_probe(struct platform_device *pdev)
 	bcdev->client = pmic_glink_register_client(dev, &client_data);
 	if (IS_ERR(bcdev->client)) {
 		rc = PTR_ERR(bcdev->client);
-<<<<<<< HEAD
-		if (rc != -EPROBE_DEFER)
-			dev_err(dev, "Error in registering with pmic_glink %d\n",
-				rc);
 		goto reg_error;
-=======
-		return rc;
->>>>>>> 48952ed36228 (Kernel: Xiaomi kernel changes for Redmi Note 12 Turbo  Android T)
 	}
 
 	down_write(&bcdev->state_sem);
@@ -7046,13 +6992,7 @@ static int battery_chg_probe(struct platform_device *pdev)
 	if (rc < 0) {
 		goto error;
 	}
-<<<<<<< HEAD
 
-=======
-	rc = battery_chg_register_panel_notifier(bcdev);
-	if (rc < 0)
-		goto error;
->>>>>>> 48952ed36228 (Kernel: Xiaomi kernel changes for Redmi Note 12 Turbo  Android T)
 	bcdev->restrict_fcc_ua = DEFAULT_RESTRICT_FCC_UA;
 	platform_set_drvdata(pdev, bcdev);
 	bcdev->fake_soc = -EINVAL;
@@ -7125,20 +7065,16 @@ error:
 	cancel_work_sync(&bcdev->battery_check_work);
 	complete(&bcdev->ack);
 	unregister_reboot_notifier(&bcdev->reboot_notifier);
-<<<<<<< HEAD
+	unregister_reboot_notifier(&bcdev->shutdown_notifier);
 reg_error:
 	if (bcdev->notifier_cookie)
 		panel_event_notifier_unregister(bcdev->notifier_cookie);
-=======
-	unregister_reboot_notifier(&bcdev->shutdown_notifier);
->>>>>>> 48952ed36228 (Kernel: Xiaomi kernel changes for Redmi Note 12 Turbo  Android T)
 	return rc;
 }
 
 static int battery_chg_remove(struct platform_device *pdev)
 {
 	struct battery_chg_dev *bcdev = platform_get_drvdata(pdev);
-<<<<<<< HEAD
 
 	down_write(&bcdev->state_sem);
 	atomic_set(&bcdev->state, PMIC_GLINK_STATE_DOWN);
@@ -7146,9 +7082,6 @@ static int battery_chg_remove(struct platform_device *pdev)
 	up_write(&bcdev->state_sem);
 
 	qti_typec_class_deinit(bcdev->typec_class);
-=======
-	int rc;
->>>>>>> 48952ed36228 (Kernel: Xiaomi kernel changes for Redmi Note 12 Turbo  Android T)
 	if (bcdev->notifier_cookie)
 		panel_event_notifier_unregister(bcdev->notifier_cookie);
 	device_init_wakeup(bcdev->dev, false);
@@ -7159,26 +7092,16 @@ static int battery_chg_remove(struct platform_device *pdev)
 	cancel_work_sync(&bcdev->usb_type_work);
 	cancel_work_sync(&bcdev->battery_check_work);
 	unregister_reboot_notifier(&bcdev->reboot_notifier);
-<<<<<<< HEAD
-=======
 	unregister_reboot_notifier(&bcdev->shutdown_notifier);
-	rc = pmic_glink_unregister_client(bcdev->client);
-	if (rc < 0) {
-		return rc;
-	}
+
 #if defined(CONFIG_OF) && defined(CONFIG_DRM_PANEL)
-	if (active_panel && !IS_ERR(cookie)) {
+	if (active_panel && !IS_ERR(cookie))
 		panel_event_notifier_unregister(cookie);
-	} else {
-	}
-	if(bcdev->support_dual_panel) {
-		if(active_panel_sec && !IS_ERR(cookie1)) {
+	if (bcdev->support_dual_panel) {
+		if(active_panel_sec && !IS_ERR(cookie1))
 			panel_event_notifier_unregister(cookie1);
-		} else {
-		}
 	}
 #endif
->>>>>>> 48952ed36228 (Kernel: Xiaomi kernel changes for Redmi Note 12 Turbo  Android T)
 
 	return 0;
 }
