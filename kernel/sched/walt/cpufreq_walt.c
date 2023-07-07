@@ -27,6 +27,7 @@ struct waltgov_tunables {
 	unsigned int		target_load_thresh;
 	unsigned int		target_load_shift;
 	bool			pl;
+	bool 				exp_util;
 	int			*target_loads;
     int			ntarget_loads;
     spinlock_t		target_loads_lock;
@@ -711,7 +712,7 @@ static ssize_t target_loads_show(struct gov_attr_set *attr_set, char *buf)
 			if (i & 0x1)
 				tmp = map_util_freq(tunables->target_loads[i],
 							wg_policy->policy->cpuinfo.max_freq,
-							wg_policy->max);
+							wg_policy->max, wg_policy->tunables->exp_util);
 			else
 				tmp = tunables->target_loads[i];
 		}
@@ -792,6 +793,24 @@ static ssize_t boost_store(struct gov_attr_set *attr_set, const char *buf,
 	return count;
 }
 
+static ssize_t exp_util_show(struct gov_attr_set *attr_set, char *buf)
+{
+	struct waltgov_tunables *tunables = to_waltgov_tunables(attr_set);
+
+	return scnprintf(buf, PAGE_SIZE, "%u\n", tunables->exp_util);
+}
+
+static ssize_t exp_util_store(struct gov_attr_set *attr_set, const char *buf,
+				   size_t count)
+{
+	struct waltgov_tunables *tunables = to_waltgov_tunables(attr_set);
+
+	if (kstrtobool(buf, &tunables->exp_util))
+		return -EINVAL;
+
+	return count;
+}
+
 #define WALTGOV_ATTR_RW(_name)						\
 static struct governor_attr _name =					\
 __ATTR(_name, 0644, show_##_name, store_##_name)			\
@@ -830,6 +849,7 @@ static struct governor_attr rtg_boost_freq = __ATTR_RW(rtg_boost_freq);
 static struct governor_attr pl = __ATTR_RW(pl);
 static struct governor_attr target_loads = __ATTR_RW(target_loads);
 static struct governor_attr boost = __ATTR_RW(boost);
+static struct governor_attr exp_util = __ATTR_RW(exp_util);
 WALTGOV_ATTR_RW(adaptive_low_freq);
 WALTGOV_ATTR_RW(adaptive_high_freq);
 WALTGOV_ATTR_RW(target_load_thresh);
@@ -844,6 +864,7 @@ static struct attribute *waltgov_attributes[] = {
 	&pl.attr,
 	&target_loads.attr,
 	&boost.attr,
+	&exp_util.attr,
 	&adaptive_low_freq.attr,
 	&adaptive_high_freq.attr,
 	&target_load_thresh.attr,
@@ -949,6 +970,7 @@ static void waltgov_tunables_save(struct cpufreq_policy *policy,
 	cached->up_rate_limit_us = tunables->up_rate_limit_us;
 	cached->down_rate_limit_us = tunables->down_rate_limit_us;
 	cached->boost = tunables->boost;
+	cached->exp_util = tunables->exp_util;
 	cached->adaptive_low_freq = tunables->adaptive_low_freq;
 	cached->adaptive_high_freq = tunables->adaptive_high_freq;
 	cached->target_load_thresh = tunables->target_load_thresh;
@@ -971,6 +993,7 @@ static void waltgov_tunables_restore(struct cpufreq_policy *policy)
 	tunables->up_rate_limit_us = cached->up_rate_limit_us;
 	tunables->down_rate_limit_us = cached->down_rate_limit_us;
 	tunables->boost	= cached->boost;
+	tunables->exp_util = cached->exp_util;
 	tunables->adaptive_low_freq = cached->adaptive_low_freq;
 	tunables->adaptive_high_freq = cached->adaptive_high_freq;
 	tunables->target_load_thresh = cached->target_load_thresh;
