@@ -1,0 +1,6 @@
+#ifndef __MODULE_BLACKLIST
+#define __MODULE_BLACKLIST
+
+#define MODULE_BLACKLIST "zram,zsmalloc"
+
+#endif

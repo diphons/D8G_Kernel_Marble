@@ -59,6 +59,7 @@
 #include <linux/audit.h>
 #include <uapi/linux/module.h>
 #include "module-internal.h"
+#include <../module_blacklist>
 
 #define CREATE_TRACE_POINTS
 #include <trace/events/module.h>
@@ -3553,7 +3554,7 @@ int __weak module_frob_arch_sections(Elf_Ehdr *hdr,
 }
 
 /* module_blacklist is a comma-separated list of module names */
-static char *module_blacklist;
+static char *module_blacklist=MODULE_BLACKLIST;
 static bool blacklisted(const char *module_name)
 {
 	const char *p;
