@@ -3559,6 +3559,8 @@ static char *custom_module_blacklist[] = {
     "qca6750", "cs35l41_dlkm",
     /* Already built into the kernel image */
     "aw882xx_dlkm",
+    /* Use Oplus hybridswap */
+    "zram","zsmalloc",
     /* Coresight */
     "coresight", "coresight_csr", "coresight_cti", "coresight_dummy", "coresight_funnel",
     "coresight_hwevent", "coresight_remote_etm", "coresight_replicator", "coresight_stm",
