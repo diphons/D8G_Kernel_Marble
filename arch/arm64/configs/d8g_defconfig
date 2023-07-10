@@ -527,7 +527,7 @@ CONFIG_RANDOMIZE_BASE=y
 #
 # Boot options
 #
-CONFIG_CMDLINE="stack_depot_disable=on kasan.stacktrace=off kvm-arm.mode=protected cgroup_disable=pressure cgroup.memory=nokmem module_blacklist=qca6750,coresight,coresight_csr,coresight_cti,coresight_dummy,coresight_funnel,coresight_hwevent,coresight_remote_etm,coresight_replicator,coresight_stm,coresight_tgu,coresight_tmc,coresight_tpda,coresight_tpdm"
+CONFIG_CMDLINE="stack_depot_disable=on kasan.stacktrace=off kvm-arm.mode=protected cgroup_disable=pressure cgroup.memory=nokmem"
 # CONFIG_CMDLINE_FROM_BOOTLOADER is not set
 CONFIG_CMDLINE_EXTEND=y
 # CONFIG_CMDLINE_FORCE is not set
