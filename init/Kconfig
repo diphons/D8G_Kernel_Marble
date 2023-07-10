@@ -1294,7 +1294,7 @@ config CPUSETS_ASSIST
 
 	  If unsure, say N.
 
-if CPUSET_ASSIST
+if CPUSETS_ASSIST
 
 config CPUSET_AUDIO_APP
 	string "Value for 'audio-app' cpuset"
