@@ -9,12 +9,14 @@
 #include <linux/init.h>
 #include <linux/cpufreq.h>
 #include <linux/cpu.h>
+#include <linux/cpuset.h>
 #include <linux/sched.h>
 #include <linux/slab.h>
 #include <linux/input.h>
 #include <linux/time.h>
 #include <linux/sysfs.h>
 #include <linux/pm_qos.h>
+#include <misc/d8g_helper.h>
 
 #include "walt.h"
 
@@ -108,6 +110,8 @@ static void do_input_boost_rem(struct work_struct *work)
 	unsigned int i, ret;
 	struct cpu_sync *i_sync_info;
 
+	do_lp_cpuset();
+
 	/* Reset the input_boost_min for all CPUs in the system */
 	pr_debug("Resetting input boost min for all CPUs\n");
 	for_each_possible_cpu(i) {
@@ -130,6 +134,11 @@ static void do_input_boost(struct work_struct *work)
 {
 	unsigned int cpu, ret;
 	struct cpu_sync *i_sync_info;
+
+	if (oprofile == 4)
+		return;
+
+	do_hp_cpuset();
 
 	cancel_delayed_work_sync(&input_boost_rem);
 	if (sched_boost_active) {
@@ -247,6 +256,7 @@ err2:
 
 static void inputboost_input_disconnect(struct input_handle *handle)
 {
+	do_lp_cpuset();
 	input_close_device(handle);
 	input_unregister_handle(handle);
 	kfree(handle);
