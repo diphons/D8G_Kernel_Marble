@@ -3812,7 +3812,7 @@ static void dynamic_cpuset_worker(struct work_struct *work)
 	else
 		update_cpumask(cs, trialcs, "0-6");
 
-	free_trial_cpuset(trialcs);
+	free_cpuset(trialcs);
 out_unlock:
 	mutex_unlock(&cpuset_mutex);
 	put_online_cpus();
