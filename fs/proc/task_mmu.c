@@ -23,6 +23,7 @@
 #include <asm/elf.h>
 #include <asm/tlb.h>
 #include <asm/tlbflush.h>
+#include <misc/d8g_helper.h>
 #include "internal.h"
 
 #define SEQ_PUT_DEC(str, val) \
@@ -195,8 +196,13 @@ static void *m_start(struct seq_file *m, loff_t *ppos)
 		return NULL;
 	}
 
-	sched_migrate_to_cpumask_start(to_cpumask(&priv->old_cpus_allowed),
-				       cpu_lp_mask);
+	if (set_pid_boost == 1) {
+		sched_migrate_to_cpumask_start(to_cpumask(&priv->old_cpus_allowed),
+						cpu_prime_mask);
+	} else if (set_pid_boost == 2) {
+		sched_migrate_to_cpumask_start(to_cpumask(&priv->old_cpus_allowed),
+						cpu_lp_mask);
+	}
 	if (mmap_read_lock_killable(mm)) {
 		mmput(mm);
 		put_task_struct(priv->task);
@@ -245,8 +251,13 @@ static void m_stop(struct seq_file *m, void *v)
 	put_task_struct(priv->task);
 	priv->task = NULL;
 	
-	sched_migrate_to_cpumask_end(to_cpumask(&priv->old_cpus_allowed),
-				     cpu_lp_mask);
+	if (set_pid_boost == 1) {
+		sched_migrate_to_cpumask_end(to_cpumask(&priv->old_cpus_allowed),
+						cpu_prime_mask);
+	} else if (set_pid_boost == 2) {
+		sched_migrate_to_cpumask_end(to_cpumask(&priv->old_cpus_allowed),
+						cpu_lp_mask);
+	}
 }
 
 static int proc_maps_open(struct inode *inode, struct file *file,
