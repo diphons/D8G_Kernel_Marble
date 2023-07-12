@@ -333,6 +333,68 @@ struct device_attribute *attr, const char *buf, size_t count)
 	return count;
 }
 
+static ssize_t set_update_show(struct device *dev,
+struct device_attribute *attr, char *buf)
+{
+	struct xiaomi_touch_pdata *pdata = dev_get_drvdata(dev);
+
+	return snprintf(buf, PAGE_SIZE, "%d\n", pdata->set_update);
+}
+
+static ssize_t set_update_store(struct device *dev,
+struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct xiaomi_touch_pdata *pdata = dev_get_drvdata(dev);
+	int input;
+	int ret;
+
+	ret = sscanf(buf, "%d", &input);
+
+	if (ret < 0)
+		return -EINVAL;
+
+	pdata->set_update = !!input;
+
+	return count;
+}
+
+static ssize_t bump_sample_rate_start(struct device *dev,
+struct device_attribute *attr, char *buf)
+{
+	struct xiaomi_touch_pdata *pdata = dev_get_drvdata(dev);
+
+	return snprintf(buf, PAGE_SIZE, "%d\n", pdata->bump_sample_rate);
+}
+
+static ssize_t bump_sample_rate_store(struct device *dev,
+struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct xiaomi_touch_pdata *pdata = dev_get_drvdata(dev);
+	struct xiaomi_touch_interface *touch_data = touch_pdata->touch_data[0];
+	int input;
+	int ret;
+
+	ret = sscanf(buf, "%d", &input);
+
+	if (ret < 0)
+		return -EINVAL; // Avoid possible crashes
+
+	if (input) {
+		pdata->bump_sample_rate = true;
+		pdata->set_update = true;
+		touch_data->setModeValue(1, 2);		//Active_MODE
+		touch_data->setModeValue(3, 34);		//Tolerance
+		touch_data->setModeValue(2, 99);		//UP_THRESHOLD
+		touch_data->setModeValue(7, 0);		//Edge_Filter 
+	} else {
+		pdata->bump_sample_rate = false;
+		pdata->set_update = false;
+		touch_data->resetMode(1);
+	}
+
+	return count;
+}
+
 int update_prox_sensor_value(int value)
 {
 	struct xiaomi_touch *dev = NULL;
@@ -1021,6 +1083,12 @@ static DEVICE_ATTR(panel_display, (S_IRUGO), panel_display_show, NULL);
 
 static DEVICE_ATTR(touch_vendor, (S_IRUGO), touch_vendor_show, NULL);
 
+static DEVICE_ATTR(set_update, (S_IRUGO | S_IWUSR | S_IWGRP),
+		   set_update_show, set_update_store);
+
+static DEVICE_ATTR(bump_sample_rate, (S_IRUGO | S_IWUSR | S_IWGRP),
+		   bump_sample_rate_start, bump_sample_rate_store);
+
 static DEVICE_ATTR(touch_thp_tx_num, (S_IRUGO), xiaomi_touch_tx_num_show, NULL);
 
 static DEVICE_ATTR(touch_thp_rx_num, (S_IRUGO), xiaomi_touch_rx_num_show, NULL);
@@ -1054,6 +1122,8 @@ static struct attribute *touch_attr_group[] = {
 	&dev_attr_prox_sensor.attr,
 	&dev_attr_panel_vendor.attr,
 	&dev_attr_panel_color.attr,
+	&dev_attr_set_update.attr,
+	&dev_attr_bump_sample_rate.attr,
 	&dev_attr_panel_display.attr,
 	&dev_attr_touch_vendor.attr,
 	&dev_attr_update_rawdata.attr,
