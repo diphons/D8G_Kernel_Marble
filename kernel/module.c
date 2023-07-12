@@ -3558,7 +3558,7 @@ static char *custom_module_blacklist[] = {
     /* Not required */
     "qca6750", "cs35l41_dlkm",
     /* Already built into the kernel image */
-    "aw882xx_dlkm",
+    "aw882xx_dlkm","xiaomi_touch",
     /* Coresight */
     "coresight", "coresight_csr", "coresight_cti", "coresight_dummy", "coresight_funnel",
     "coresight_hwevent", "coresight_remote_etm", "coresight_replicator", "coresight_stm",
