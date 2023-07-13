@@ -333,6 +333,7 @@ struct device_attribute *attr, const char *buf, size_t count)
 	return count;
 }
 
+#ifdef CONFIG_BUMP_SAMPLE_RATE
 static ssize_t set_update_show(struct device *dev,
 struct device_attribute *attr, char *buf)
 {
@@ -394,6 +395,7 @@ struct device_attribute *attr, const char *buf, size_t count)
 
 	return count;
 }
+#endif
 
 int update_prox_sensor_value(int value)
 {
@@ -1083,11 +1085,13 @@ static DEVICE_ATTR(panel_display, (S_IRUGO), panel_display_show, NULL);
 
 static DEVICE_ATTR(touch_vendor, (S_IRUGO), touch_vendor_show, NULL);
 
+#ifdef CONFIG_BUMP_SAMPLE_RATE
 static DEVICE_ATTR(set_update, (S_IRUGO | S_IWUSR | S_IWGRP),
 		   set_update_show, set_update_store);
 
 static DEVICE_ATTR(bump_sample_rate, (S_IRUGO | S_IWUSR | S_IWGRP),
 		   bump_sample_rate_start, bump_sample_rate_store);
+#endif
 
 static DEVICE_ATTR(touch_thp_tx_num, (S_IRUGO), xiaomi_touch_tx_num_show, NULL);
 
@@ -1122,8 +1126,10 @@ static struct attribute *touch_attr_group[] = {
 	&dev_attr_prox_sensor.attr,
 	&dev_attr_panel_vendor.attr,
 	&dev_attr_panel_color.attr,
+#ifdef CONFIG_BUMP_SAMPLE_RATE
 	&dev_attr_set_update.attr,
 	&dev_attr_bump_sample_rate.attr,
+#endif
 	&dev_attr_panel_display.attr,
 	&dev_attr_touch_vendor.attr,
 	&dev_attr_update_rawdata.attr,

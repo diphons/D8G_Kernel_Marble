@@ -161,8 +161,10 @@ struct xiaomi_touch_pdata{
 	spinlock_t raw_lock;
 	int palm_value;
 	bool palm_changed;
+#ifdef CONFIG_BUMP_SAMPLE_RATE
 	bool set_update;
 	bool bump_sample_rate;
+#endif
 	int prox_value;
 	bool prox_changed;
 	const char *name;

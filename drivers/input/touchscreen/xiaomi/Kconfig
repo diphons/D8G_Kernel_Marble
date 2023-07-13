@@ -7,3 +7,13 @@ config TOUCHSCREEN_XIAOMI_TOUCHFEATURE
 	  If unsure, say N.
 
 	  To compile this driver as a module, choose M here:
+
+config BUMP_SAMPLE_RATE
+	tristate "Bump Sample Rate"
+	depends on TOUCHSCREEN_XIAOMI_TOUCHFEATURE
+	help
+	  Say Y here if you enable xiaomi boost touch feature.
+
+	  If unsure, say N.
+
+	  To compile this driver as a module, choose M here:
