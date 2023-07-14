@@ -356,6 +356,8 @@ CONFIG_ARCH_SPRD=y
 # CONFIG_ARCH_ZX is not set
 # CONFIG_ARCH_ZYNQMP is not set
 # CONFIG_S12B is not set
+CONFIG_BOARD_XIAOMI=y
+CONFIG_BOARD_MARBLE=y
 CONFIG_OXYGEN_OS=y
 # end of Platform selection
 
