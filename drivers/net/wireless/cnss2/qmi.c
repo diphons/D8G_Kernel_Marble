@@ -17,6 +17,18 @@
 #define WLFW_SERVICE_INS_ID_V01		1
 #define WLFW_CLIENT_ID			0x4b4e454c
 #define BDF_FILE_NAME_PREFIX		"bdwlan"
+#define ELF_BDF_FILE_NAME_L2		"bd_l2.elf"
+#define ELF_BDF_FILE_NAME_L2_GF		"bd_l2gf.elf"
+#define ELF_BDF_FILE_NAME_L2_GLOBAL	"bd_l2gl.elf"
+#define ELF_BDF_FILE_NAME_L2_GF_GLOBAL	"bd_l2gfgl.elf"
+#define ELF_BDF_FILE_NAME_L3		"bd_l3.elf"
+#define ELF_BDF_FILE_NAME_L3_GF		"bd_l3gf.elf"
+#define ELF_BDF_FILE_NAME_L3_GLOBAL	"bd_l3gl.elf"
+#define ELF_BDF_FILE_NAME_L3_GF_GLOBAL	"bd_l3gfgl.elf"
+#define ELF_BDF_FILE_NAME_L10		"bd_l10.elf"
+#define ELF_BDF_FILE_NAME_L10_GF	"bd_l10gf.elf"
+#define ELF_BDF_FILE_NAME_L10_GLOBAL	"bd_l10gl.elf"
+#define ELF_BDF_FILE_NAME_L10_GF_GLOBAL	"bd_l10gfgl.elf"
 #define ELF_BDF_FILE_NAME		"bdwlan.elf"
 #define ELF_BDF_FILE_NAME_GF		"bdwlang.elf"
 #define ELF_BDF_FILE_NAME_PREFIX	"bdwlan.e"
@@ -26,6 +38,7 @@
 #define BIN_BDF_FILE_NAME_PREFIX	"bdwlan.b"
 #define BIN_BDF_FILE_NAME_GF_PREFIX	"bdwlang.b"
 #define REGDB_FILE_NAME			"regdb.bin"
+#define REGDB_FILE_NAME_XIAOMI		"regdb_xiaomi.bin"
 #define HDS_FILE_NAME			"hds.bin"
 #define CHIP_ID_GF_MASK			0x10
 
@@ -648,7 +661,55 @@ static int cnss_get_bdf_file_name(struct cnss_plat_data *plat_priv,
 	case CNSS_BDF_ELF:
 		/* Board ID will be equal or less than 0xFF in GF mask case */
 		if (plat_priv->board_info.board_id == 0xFF) {
-			snprintf(filename_tmp, filename_len, ELF_BDF_FILE_NAME);
+			if (plat_priv->chip_info.chip_id & CHIP_ID_GF_MASK) {
+				if (hw_platform_ver == HARDWARE_PROJECT_L2) {
+					if ((uint32_t)CountryGlobal == hw_country_ver)
+						snprintf(filename_tmp, filename_len,
+							ELF_BDF_FILE_NAME_L2_GF_GLOBAL);
+					else
+						snprintf(filename_tmp, filename_len,
+							ELF_BDF_FILE_NAME_L2_GF);
+				} else if (hw_platform_ver == HARDWARE_PROJECT_L3) {
+					if ((uint32_t)CountryGlobal == hw_country_ver)
+						snprintf(filename_tmp, filename_len,
+							ELF_BDF_FILE_NAME_L3_GF_GLOBAL);
+					else
+						snprintf(filename_tmp, filename_len,
+							ELF_BDF_FILE_NAME_L3_GF);
+				} else if (hw_platform_ver == HARDWARE_PROJECT_L10) {
+					if ((uint32_t)CountryGlobal == hw_country_ver)
+						snprintf(filename_tmp, filename_len,
+							ELF_BDF_FILE_NAME_L10_GF_GLOBAL);
+					else
+						snprintf(filename_tmp, filename_len,
+							ELF_BDF_FILE_NAME_L10_GF);
+				} else
+					snprintf(filename_tmp, filename_len,
+						ELF_BDF_FILE_NAME_GF);
+			} else if (hw_platform_ver == HARDWARE_PROJECT_L2) {
+				if ((uint32_t)CountryGlobal == hw_country_ver)
+					snprintf(filename_tmp, filename_len,
+						ELF_BDF_FILE_NAME_L2_GLOBAL);
+				else
+					snprintf(filename_tmp, filename_len,
+						ELF_BDF_FILE_NAME_L2);
+			} else if (hw_platform_ver == HARDWARE_PROJECT_L3) {
+				if ((uint32_t)CountryGlobal == hw_country_ver)
+					snprintf(filename_tmp, filename_len,
+						ELF_BDF_FILE_NAME_L3_GLOBAL);
+				else
+					snprintf(filename_tmp, filename_len,
+						ELF_BDF_FILE_NAME_L3);
+			} else if (hw_platform_ver == HARDWARE_PROJECT_L10) {
+				if ((uint32_t)CountryGlobal == hw_country_ver)
+					snprintf(filename_tmp, filename_len,
+						ELF_BDF_FILE_NAME_L10_GLOBAL);
+				else
+					snprintf(filename_tmp, filename_len,
+						ELF_BDF_FILE_NAME_L10);
+			} else
+				snprintf(filename_tmp, filename_len,
+					ELF_BDF_FILE_NAME);
 		} else if (plat_priv->board_info.board_id < 0xFF) {
 			if (plat_priv->chip_info.chip_id & CHIP_ID_GF_MASK)
 				snprintf(filename_tmp, filename_len,
@@ -690,7 +751,11 @@ static int cnss_get_bdf_file_name(struct cnss_plat_data *plat_priv,
 		}
 		break;
 	case CNSS_BDF_REGDB:
+#ifdef CONFIG_BOARD_INGRESS
+		snprintf(filename_tmp, filename_len, REGDB_FILE_NAME_XIAOMI);
+#else
 		snprintf(filename_tmp, filename_len, REGDB_FILE_NAME);
+#endif
 		break;
 	case CNSS_BDF_HDS:
 		snprintf(filename_tmp, filename_len, HDS_FILE_NAME);

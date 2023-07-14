@@ -12,7 +12,9 @@
 #include <../../../drivers/android/binder_internal.h>
 #include "../../../drivers/android/binder_trace.h"
 
-
+#ifdef CONFIG_MIGT_WALT
+#include "../../../drivers/mihw/include/mi_module.h"
+#endif
 
 static void create_util_to_cost_pd(struct em_perf_domain *pd)
 {
@@ -211,13 +213,33 @@ unlock:
 	return ret;
 }
 
+#ifdef CONFIG_MIGT_WALT
+mi_walt_get_indicies order_index_modify_func = NULL;
+
+void register_mi_walt_get_indicies(mi_walt_get_indicies f)
+{
+	pr_info("%s now\n",  __FUNCTION__);
+	order_index_modify_func = f;
+}
+EXPORT_SYMBOL_GPL(register_mi_walt_get_indicies);
+
+void unregister_mi_walt_get_indicies(void)
+{
+	pr_info("%s now\n",  __FUNCTION__);
+	order_index_modify_func = NULL;
+}
+EXPORT_SYMBOL_GPL(unregister_mi_walt_get_indicies);
+#endif
+
 #define MIN_UTIL_FOR_ENERGY_EVAL	52
 static void walt_get_indicies(struct task_struct *p, int *order_index,
 		int *end_index, int per_task_boost, bool is_uclamp_boosted,
 		bool *energy_eval_needed, bool *ignore_cluster)
 {
 	int i = 0;
-
+#ifdef CONFIG_MIGT_WALT
+	bool check_return = false;
+#endif
 
 	*order_index = 0;
 	*end_index = 0;
@@ -241,7 +263,15 @@ static void walt_get_indicies(struct task_struct *p, int *order_index,
 		return;
 	}
 
-
+#ifdef CONFIG_MIGT_WALT
+	if(order_index_modify_func)
+		order_index_modify_func(p, order_index, end_index, num_sched_clusters,
+				&check_return);
+	if(check_return) {
+		*energy_eval_needed = false;
+		return;
+	}
+#endif
 
 	if (is_uclamp_boosted || per_task_boost ||
 		task_boost_policy(p) == SCHED_BOOST_ON_BIG ||
@@ -878,6 +908,24 @@ static inline bool select_cpu_same_energy(int cpu, int best_cpu, int prev_cpu)
 	return true;
 }
 
+#ifdef CONFIG_MIGT_WALT
+mi_find_energy_efficient_cpu wake_render_func = NULL;
+
+void register_mi_find_energy_efficient_cpu(mi_find_energy_efficient_cpu f)
+{
+	pr_info("%s now\n",  __FUNCTION__);
+	wake_render_func = f;
+}
+EXPORT_SYMBOL_GPL(register_mi_find_energy_efficient_cpu);
+
+void unregister_mi_find_energy_efficient_cpu(void)
+{
+	pr_info("%s now\n",  __FUNCTION__);
+	wake_render_func = NULL;
+}
+EXPORT_SYMBOL_GPL(unregister_mi_find_energy_efficient_cpu);
+#endif
+
 static inline unsigned int capacity_spare_of(int cpu)
 {
 	return capacity_orig_of(cpu) - cpu_util(cpu);
@@ -907,6 +955,10 @@ int walt_find_energy_efficient_cpu(struct task_struct *p, int prev_cpu,
 	bool ignore_cluster[4] = {0};
 	struct walt_sched_cluster *sched_cluster;
 
+#ifdef CONFIG_MIGT_WALT
+	if(wake_render_func)
+		wake_render_func(p, &need_idle);
+#endif
 	if (walt_is_many_wakeup(sibling_count_hint) && prev_cpu != cpu &&
 			cpumask_test_cpu(prev_cpu, &p->cpus_mask))
 		return prev_cpu;
@@ -1067,7 +1119,10 @@ fail:
 	return -EPERM;
 }
 
-
+#ifdef CONFIG_TURBO_WALT
+extern void mi_select_task_rq_fair(struct task_struct *p, int prev_cpu,
+	int sd_flag, int wake_flags, int *target_cpu);
+#endif
 
 static void
 walt_select_task_rq_fair(void *unused, struct task_struct *p, int prev_cpu,
@@ -1076,7 +1131,9 @@ walt_select_task_rq_fair(void *unused, struct task_struct *p, int prev_cpu,
 	int sync;
 	int sibling_count_hint;
 
-
+#ifdef CONFIG_TURBO_WALT
+	mi_select_task_rq_fair(p, prev_cpu, sd_flag, wake_flags, target_cpu);
+#endif
 
 	if (unlikely(walt_disabled))
 		return;

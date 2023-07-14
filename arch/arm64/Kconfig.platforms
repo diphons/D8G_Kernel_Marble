@@ -444,6 +444,11 @@ config BOARD_MARBLE
 	help
 	  This enables support for Redmi Note 12 Turbo / Poco F5.
 
+config BOARD_INGRESS
+	bool "ingress platform"
+	help
+	  This enables support for Redmi K50G / Poco F4 GT.
+
 config OXYGEN_OS
 	bool "oxygen platform"
 	help

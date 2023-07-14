@@ -80,7 +80,12 @@ static DEFINE_PER_CPU(struct waltgov_cpu, waltgov_cpu);
 static DEFINE_PER_CPU(struct waltgov_tunables *, cached_tunables);
 
 
-
+#ifdef CONFIG_MIGT_WALT
+typedef void (*oem_freq_f)(void *nouse, unsigned long util, unsigned long freq,
+		unsigned long max, unsigned long *next_freq,
+		struct cpufreq_policy *policy, bool *need_freq_update);
+static oem_freq_f oem_set_freq_hook = NULL;
+#endif
 
 
 #define DEFAULT_TARGET_LOAD (0)
@@ -228,7 +233,15 @@ static inline unsigned long walt_map_util_freq(unsigned long util,
 	return (fmax + (fmax >> 2)) * util / cap;
 }
 
+#ifdef CONFIG_MIGT_WALT
+void register_oem_freq_hook(oem_freq_f f)
+{
+	if (likely(f))
+		oem_set_freq_hook = f;
+}
 
+EXPORT_SYMBOL_GPL(register_oem_freq_hook);
+#endif
 
 static unsigned int get_next_freq(struct waltgov_policy *wg_policy,
 				  unsigned long util, unsigned long max,
@@ -236,7 +249,9 @@ static unsigned int get_next_freq(struct waltgov_policy *wg_policy,
 {
 	struct cpufreq_policy *policy = wg_policy->policy;
 	unsigned int freq, raw_freq, final_freq;
-
+#ifdef CONFIG_MIGT_WALT
+	unsigned long glk_freq;
+#endif
 
 	raw_freq = walt_map_util_freq(util, wg_policy, max, wg_cpu->cpu);
 	freq = raw_freq;
@@ -247,7 +262,13 @@ static unsigned int get_next_freq(struct waltgov_policy *wg_policy,
 		else if (raw_freq <= wg_policy->tunables->adaptive_high_freq)
 			freq = wg_policy->tunables->adaptive_high_freq;
 	}
-
+#ifdef CONFIG_MIGT_WALT
+	glk_freq = freq;
+	if (oem_set_freq_hook)
+		oem_set_freq_hook(NULL, util, policy->cpuinfo.max_freq, max,
+			&glk_freq, policy, &wg_policy->need_freq_update);
+	freq = glk_freq;
+#endif
 	trace_waltgov_next_freq(policy->cpu, util, max, raw_freq, freq, policy->min, policy->max,
 				wg_policy->cached_raw_freq, wg_policy->need_freq_update);
 

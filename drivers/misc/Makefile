@@ -55,6 +55,9 @@ obj-$(CONFIG_PCI_ENDPOINT_TEST)	+= pci_endpoint_test.o
 obj-$(CONFIG_OCXL)		+= ocxl/
 obj-$(CONFIG_ISL97900_LED)	+= isl97900_led/
 obj-y				+= cardreader/
+obj-y 							+= mi-memory/
+obj-y 							+= mi-ioturbo/
+obj-y 							+= mi-power/
 obj-$(CONFIG_PVPANIC)   	+= pvpanic.o
 obj-$(CONFIG_HABANA_AI)		+= habanalabs/
 obj-$(CONFIG_UACCE)		+= uacce/
@@ -68,6 +71,7 @@ qseecom-mod-$(CONFIG_COMPAT)	+= compat_qseecom.o
 obj-$(CONFIG_WIGIG_SENSING_SPI)	+= wigig_sensing.o
 obj-$(CONFIG_KINECTICS_XR_NORDIC) += kxrctrl/
 obj-y				+= hwid/
+obj-$(CONFIG_PERF_HELPER)       += perf_helper.o
 obj-$(CONFIG_MI_GAMEKEY)        += mi_gamekey/
 obj-$(CONFIG_LDO_WL2866D)	+= wl2866d.o
 

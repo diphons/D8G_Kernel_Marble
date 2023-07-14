@@ -7,3 +7,5 @@ build.config.msm.parrot
 build.config.msm.marble
 build.config.msm.marble.tuivm
 build.config.waipio_le
+build.config.msm.ingres
+build.config.msm.ingres.tuivm
