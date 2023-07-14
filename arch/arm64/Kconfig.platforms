@@ -431,9 +431,25 @@ config S12B
 	help
 	  This enable support for zizhan camera driver
 
+menu "Xiaomi Family"
+config BOARD_XIAOMI
+	bool "Xiaomi Family"
+	depends on ARCH_QCOM
+	help
+	  This enables support for XiaoMi Family devices.
+
+if BOARD_XIAOMI
+config BOARD_MARBLE
+	bool "marble and marbleIN platform"
+	help
+	  This enables support for Redmi Note 12 Turbo / Poco F5.
+
 config OXYGEN_OS
 	bool "oxygen platform"
 	help
 	  This enables support for OxygenOS port rom.
+
+endif
+endmenu
 
 endmenu
