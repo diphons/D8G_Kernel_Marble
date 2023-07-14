@@ -3555,7 +3555,7 @@ int __weak module_frob_arch_sections(Elf_Ehdr *hdr,
 /* module_blacklist is a comma-separated list of module names */
 static char *module_blacklist;
 static char *custom_module_blacklist[] = {
-#if defined(CONFIG_BOARD_MARBLE)
+#if defined(CONFIG_BOARD_MARBLE) || defined(CONFIG_BOARD_INGRESS)
     /* Not required */
     "qca6750", "cs35l41_dlkm",
     /* Already built into the kernel image */
