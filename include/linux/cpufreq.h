@@ -608,10 +608,19 @@ void cpufreq_unregister_governor(struct cpufreq_governor *governor);
 int cpufreq_start_governor(struct cpufreq_policy *policy);
 void cpufreq_stop_governor(struct cpufreq_policy *policy);
 
+#ifdef CONFIG_CPU_FREQ_GOV_GAME
+int __init sugov_init_frame_boost(void);
+#else
+inline int __init sugov_init_frame_boost(void)
+{
+	return 0;
+}
+#endif
+
 #define cpufreq_governor_init(__governor)			\
 static int __init __governor##_init(void)			\
 {								\
-	return cpufreq_register_governor(&__governor);	\
+	return cpufreq_register_governor(&__governor) || sugov_init_frame_boost();	\
 }								\
 core_initcall(__governor##_init)
 
