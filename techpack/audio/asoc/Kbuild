@@ -215,47 +215,47 @@ CDEFINES +=	-DANI_LITTLE_BYTE_ENDIAN \
 		-Werror\
 		-D__linux__
 
-ifneq (,$(filter $(TARGET_PRODUCT), zeus))
+ifdef CONFIG_BOARD_ZEUS
 	CDEFINES += -DCONFIG_TARGET_PRODUCT_ZEUS
 endif
 
-ifneq (,$(filter $(TARGET_PRODUCT), thor))
+ifdef CONFIG_BOARD_THOR
 	CDEFINES += -DCONFIG_TARGET_PRODUCT_THOR
 endif
 
-ifneq (,$(filter $(TARGET_PRODUCT), cupid))
+ifdef CONFIG_BOARD_CUPID
 	CDEFINES += -DCONFIG_TARGET_PRODUCT_CUPID
 endif
 
-ifneq (,$(filter $(TARGET_PRODUCT), ingres))
+ifdef CONFIG_BOARD_INGRES
 	CDEFINES += -DCONFIG_TARGET_PRODUCT_INGRES
 endif
 
-ifneq (,$(filter $(TARGET_PRODUCT), zizhan))
+ifdef CONFIG_BOARD_ZIZHAN
 	CDEFINES += -DCONFIG_TARGET_PRODUCT_ZIZHAN
 endif
 
-ifneq (,$(filter $(TARGET_PRODUCT), unicorn))
+ifdef CONFIG_BOARD_UNICORN
 	CDEFINES += -DCONFIG_TARGET_PRODUCT_UNICORN
 endif
 
-ifneq (,$(filter $(TARGET_PRODUCT), ziyi))
+ifdef CONFIG_BOARD_ZIYI
 	CDEFINES += -DCONFIG_TARGET_PRODUCT_ZIYI
 endif
 
-ifneq (,$(filter $(TARGET_PRODUCT), mayfly))
+ifdef CONFIG_BOARD_MAYFLY
 	CDEFINES += -DCONFIG_TARGET_PRODUCT_MAYFLY
 endif
 
-ifneq (,$(filter $(TARGET_PRODUCT), diting))
+ifdef CONFIG_BOARD_DITING
 	CDEFINES += -DCONFIG_TARGET_PRODUCT_DITING
 endif
 
-ifneq (,$(filter $(TARGET_PRODUCT), mondrian))
+ifdef CONFIG_BOARD_MONDRIAN
 	CDEFINES += -DCONFIG_TARGET_PRODUCT_MONDRIAN
 endif
 
-ifneq (,$(filter $(TARGET_PRODUCT), marble))
+ifdef CONFIG_BOARD_MARBLE
 	CDEFINES += -DCONFIG_TARGET_PRODUCT_MARBLE
 endif
 
