@@ -137,7 +137,20 @@ static unsigned int *get_cluster_pd(struct cpufreq_policy *policy)
 			break;
 		}
 	} else {
-		return NULL;
+		switch (cluster_id) {
+			case SLIVER_CLUSTER:
+				return sm8450_pd_sliver;
+			break;
+			case GOLDEN_CLUSTER:
+				return sm8450_pd_golden;
+			break;
+			case GOPLUS_CLUSTER:
+				return sm8450_pd_goplus;
+			break;
+			default:
+				return NULL;
+			break;
+		}
 	}
 }
 
