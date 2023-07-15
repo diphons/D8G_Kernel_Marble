@@ -1348,7 +1348,6 @@ static struct attribute *sugov_attrs[] = {
 	&multi_tl_enable.attr,
 #endif
 	&cobuck_enable.attr,
->>>>>>> 39ceb29f3d665 (sched: Optmization from Oplus)
 	NULL
 };
 ATTRIBUTE_GROUPS(sugov);

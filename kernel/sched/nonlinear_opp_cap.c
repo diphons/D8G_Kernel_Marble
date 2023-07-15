@@ -266,7 +266,7 @@ void nlopp_map_util_freq(void *data, unsigned long util, unsigned long freq,
 		}
 		policy->cached_target_freq = *next_freq;
 		policy->cached_resolved_idx = j;
-		sg_policy->cached_raw_freq = map_util_freq(temp_util, freq, cap);
+		sg_policy->cached_raw_freq = map_util_freq(temp_util, freq, cap, sg_policy->tunables->exp_util);
 	}
 }
 
