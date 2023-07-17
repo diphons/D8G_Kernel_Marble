@@ -3559,7 +3559,10 @@ static char *custom_module_blacklist[] = {
     /* Not required */
     "qca6750", "cs35l41_dlkm",
     /* Already built into the kernel image */
-    "aw882xx_dlkm","xiaomi_touch","zram","zsmalloc",
+    "aw882xx_dlkm", "zram", "zsmalloc",
+#if defined(CONFIG_BOARD_INGRESS)
+	"xiaomi_touch",
+#endif
     /* Useless logs */
     "cameralog", "f_fs_ipc_log",
     /* Debug */
