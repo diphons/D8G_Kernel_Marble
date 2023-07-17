@@ -32,5 +32,8 @@ patch_vbmeta_flag=auto
 
 dump_boot # use split_boot to skip ramdisk unpack, e.g. for devices with init_boot ramdisk
 
+# Begin Ramdisk Changes
+. /tmp/anykernel/tools/install.sh;
+
 write_boot # use flash_boot to skip ramdisk repack, e.g. for devices with init_boot ramdisk
 ## end boot install
