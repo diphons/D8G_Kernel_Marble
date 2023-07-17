@@ -3563,10 +3563,6 @@ static char *custom_module_blacklist[] = {
 #if defined(CONFIG_BOARD_INGRESS)
 	"xiaomi_touch",
 #endif
-    /* Useless logs */
-    "cameralog", "f_fs_ipc_log",
-    /* Debug */
-    "qcom_cpufreq_hw_debug", "qcom_iommu_debug", "qti_battery_debug", "rdbg", "spmi_glink_debug", "spmi_pmic_arb_debug",
     /* Coresight */
     "coresight", "coresight_csr", "coresight_cti", "coresight_dummy", "coresight_funnel",
     "coresight_hwevent", "coresight_remote_etm", "coresight_replicator", "coresight_stm",
