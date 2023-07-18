@@ -91,10 +91,15 @@ fi
 ui_print " ";
 ui_print " ";
 
-dtb_image=$home/kernel/stock_dtb
-dtb_image_oc=$home/kernel/oc_dtb
-dtb_image_v=$home/kernel/stock_dtb_v
-dtb_image_voc=$home/kernel/oc_dtb_v
+if [ -f $home/kernel/dtb/dtb ]; then
+	dir_dtb=$home/kernel/dtb
+else
+	dir_dtb=/tmp/anykernel/kernel/dtb
+fi
+dtb_image=$dir_dtb/dtb
+dtb_image_oc=$dir_dtb/dtb_oc
+dtb_image_v=$dir_dtb/dtb_v
+dtb_image_voc=$dir_dtb/dtb_ocv
 
 if [ -f $dtb_image_oc ]; then
 	ui_print " "
