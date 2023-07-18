@@ -96,69 +96,46 @@ dtb_image_oc=$home/kernel/oc_dtb
 dtb_image_v=$home/kernel/stock_dtb_v
 dtb_image_voc=$home/kernel/oc_dtb_v
 
-	if [ -f $dtb_image_oc ]; then
-		ui_print " "
-		ui_print "Choose GPU to install.."
-		ui_print " "
-		ui_print "Over Clock GPU ?"
-		ui_print " "
-		ui_print "   Vol+ = Yes, Vol- = No"
-		ui_print ""
-		ui_print "   Yes.. Over Clock GPU"
-		ui_print "   No!!... Stock with Under Clock GPU"
-		ui_print " "
-		if $FUNCTION; then
-			if [ -f $dtb_image_voc ]; then
-				ui_print " "
-				ui_print "Choose GPU to install.."
-				ui_print " "
-				ui_print "Undervolt GPU ?"
-				ui_print " "
-				ui_print "   Vol+ = Yes, Vol- = No"
-				ui_print ""
-				ui_print "   Yes.. Undervolt GPU"
-				ui_print "   No!!... Stock volt GPU"
-				ui_print " "
-				if $FUNCTION; then
-					ui_print "-> Include DTB with UV OC GPU selected.."
-					install_dtb="  -> Included DTB with UV OC GPU..."
-					cp $dtb_image_voc $home/dtb
-				else
-					ui_print "-> Include DTB with OC GPU selected.."
-					install_dtb="  -> Included DTB with OC GPU..."
-					cp $dtb_image_oc $home/dtb
-				fi
+if [ -f $dtb_image_oc ]; then
+	ui_print " "
+	ui_print "Choose GPU to install.."
+	ui_print " "
+	ui_print "Over Clock GPU ?"
+	ui_print " "
+	ui_print "   Vol+ = Yes, Vol- = No"
+	ui_print ""
+	ui_print "   Yes.. Over Clock GPU"
+	if [ -f $dtb_image_v ]; then
+		ui_print "   No!!... Stock or Under Clock GPU"
+	else
+		ui_print "   No!!... Stock GPU"
+	fi
+	ui_print " "
+	if $FUNCTION; then
+		if [ -f $dtb_image_voc ]; then
+			ui_print " "
+			ui_print "Choose GPU to install.."
+			ui_print " "
+			ui_print "Undervolt GPU ?"
+			ui_print " "
+			ui_print "   Vol+ = Yes, Vol- = No"
+			ui_print ""
+			ui_print "   Yes.. Undervolt GPU"
+			ui_print "   No!!... Stock volt GPU"
+			ui_print " "
+			if $FUNCTION; then
+				ui_print "-> Include DTB with UV OC GPU selected.."
+				install_dtb="  -> Included DTB with UV OC GPU..."
+				cp $dtb_image_voc $home/dtb
 			else
 				ui_print "-> Include DTB with OC GPU selected.."
 				install_dtb="  -> Included DTB with OC GPU..."
 				cp $dtb_image_oc $home/dtb
 			fi
 		else
-			if [ -f $dtb_image_v ]; then
-				ui_print " "
-				ui_print "Choose GPU to install.."
-				ui_print " "
-				ui_print "Undervolt GPU ?"
-				ui_print " "
-				ui_print "   Vol+ = Yes, Vol- = No"
-				ui_print ""
-				ui_print "   Yes.. Undervolt GPU"
-				ui_print "   No!!... Stock volt GPU"
-				ui_print " "
-				if $FUNCTION; then
-					ui_print "-> Include DTB with UV Stock GPU selected.."
-					install_dtb="  -> Included DTB with UV Stock GPU..."
-					cp $dtb_image_v $home/dtb
-				else
-					ui_print "-> Include DTB with Stock GPU selected.."
-					install_dtb="  -> Included DTB with Stock GPU..."
-					cp $dtb_image $home/dtb
-				fi
-			else
-				ui_print "-> Include DTB with Stock GPU selected.."
-				install_dtb="  -> Included DTB with Stock GPU..."
-				cp $dtb_image $home/dtb
-			fi
+			ui_print "-> Include DTB with OC GPU selected.."
+			install_dtb="  -> Included DTB with OC GPU..."
+			cp $dtb_image_oc $home/dtb
 		fi
 	else
 		if [ -f $dtb_image_v ]; then
@@ -187,6 +164,33 @@ dtb_image_voc=$home/kernel/oc_dtb_v
 			cp $dtb_image $home/dtb
 		fi
 	fi
+else
+	if [ -f $dtb_image_v ]; then
+		ui_print " "
+		ui_print "Choose GPU to install.."
+		ui_print " "
+		ui_print "Undervolt GPU ?"
+		ui_print " "
+		ui_print "   Vol+ = Yes, Vol- = No"
+		ui_print ""
+		ui_print "   Yes.. Undervolt GPU"
+		ui_print "   No!!... Stock volt GPU"
+		ui_print " "
+		if $FUNCTION; then
+			ui_print "-> Include DTB with UV Stock GPU selected.."
+			install_dtb="  -> Included DTB with UV Stock GPU..."
+			cp $dtb_image_v $home/dtb
+		else
+			ui_print "-> Include DTB with Stock GPU selected.."
+			install_dtb="  -> Included DTB with Stock GPU..."
+			cp $dtb_image $home/dtb
+		fi
+	else
+		ui_print "-> Include DTB with Stock GPU selected.."
+		install_dtb="  -> Included DTB with Stock GPU..."
+		cp $dtb_image $home/dtb
+	fi
+fi
 
 # Choose Permissive or Enforcing
 ui_print " "
