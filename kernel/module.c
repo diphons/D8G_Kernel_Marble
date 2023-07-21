@@ -3559,7 +3559,7 @@ static char *custom_module_blacklist[] = {
     /* Not required */
     "qca6750", "cs35l41_dlkm",
     /* Already built into the kernel image */
-    "aw882xx_dlkm", "zram", "zsmalloc", "atmel_mxt_ts", "nt36xxx_i2c", "nt36xxx_spi", "synaptics_dsx", "focaltech_fts",
+    "aw882xx_dlkm", "lzo", "lzo_rle", "zram", "zsmalloc", "atmel_mxt_ts", "nt36xxx_i2c", "nt36xxx_spi", "synaptics_dsx", "focaltech_fts",
     /* Coresight */
     "coresight", "coresight_csr", "coresight_cti", "coresight_dummy", "coresight_funnel",
     "coresight_hwevent", "coresight_remote_etm", "coresight_replicator", "coresight_stm",
