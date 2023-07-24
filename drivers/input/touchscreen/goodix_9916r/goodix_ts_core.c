@@ -30,13 +30,6 @@
 
 #include <linux/input/mt.h>
 #define INPUT_TYPE_B_PROTOCOL
-#ifdef CONFIG_MI_DISP_NOTIFIER
-#include "../../../gpu/drm/mediatek/mi_disp/mi_disp_notifier.h"
-#endif
-
-#ifdef GOODIX_FOD_AREA_REPORT
-#include "../../../gpu/drm/mediatek/mediatek_v2/mi_disp/mi_disp_lhbm.h"
-#endif
 
 #include "goodix_ts_core.h"
 
