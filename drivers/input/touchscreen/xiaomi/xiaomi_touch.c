@@ -384,14 +384,15 @@ struct device_attribute *attr, const char *buf, size_t count)
 	if (input) {
 		pdata->bump_sample_rate = true;
 		pdata->set_update = true;
-		touch_data->setModeValue(1, 2);		//Active_MODE
-		touch_data->setModeValue(3, 34);		//Tolerance
-		touch_data->setModeValue(2, 99);		//UP_THRESHOLD
-		touch_data->setModeValue(7, 0);		//Edge_Filter 
+		touch_data->setModeValue(0, 1);
+		touch_data->setModeValue(1, 1);
+		touch_data->setModeValue(3, 5);
+		touch_data->setModeValue(2, 99);
+		touch_data->setModeValue(7, 0);
 	} else {
 		pdata->bump_sample_rate = false;
 		pdata->set_update = false;
-		touch_data->resetMode(1);
+		touch_data->resetMode(0);
 	}
 
 	return count;
