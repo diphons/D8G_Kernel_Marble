@@ -28,6 +28,10 @@
 #include <drm/drm_panel.h>
 #include <linux/power_supply.h>
 
+#ifdef CONFIG_TOUCHSCREEN_COMMON
+#include <linux/input/tp_common.h>
+#endif
+
 #include <linux/input/mt.h>
 #define INPUT_TYPE_B_PROTOCOL
 
@@ -930,6 +934,32 @@ static struct attribute *sysfs_attrs[] = {
 static const struct attribute_group sysfs_group = {
 	.attrs = sysfs_attrs,
 };
+
+#ifdef CONFIG_TOUCHSCREEN_COMMON
+static ssize_t double_tap_show(struct kobject *kobj,
+				struct kobj_attribute *attr, char *buf)
+{
+	return sprintf(buf, "%d\n", goodix_core_data->double_wakeup);
+}
+
+static ssize_t double_tap_store(struct kobject *kobj,
+	struct kobj_attribute *attr, const char *buf, size_t count)
+{
+	int rc, val;
+
+	rc = kstrtoint(buf, 10, &val);
+	if (rc)
+		return -EINVAL;
+
+	goodix_core_data->double_wakeup = !!val;
+	return count;
+}
+
+static struct tp_common_ops double_tap_ops = {
+	.show = double_tap_show,
+	.store = double_tap_store
+};
+#endif
 
 static int goodix_ts_sysfs_init(struct goodix_ts_core *core_data)
 {
@@ -3546,6 +3576,14 @@ static int goodix_ts_probe(struct platform_device *pdev)
 			}
 		}
 	}
+
+#ifdef CONFIG_TOUCHSCREEN_COMMON
+	ret = tp_common_set_double_tap_ops(&double_tap_ops);
+	if (ret < 0) {
+		ts_err("%s: Failed to create double_tap node err=%d\n",
+			__func__, ret);
+	}
+#endif
 
 #ifdef GOODIX_XIAOMI_TOUCHFEATURE
 	core_data->game_wq = alloc_workqueue("gtp-game-queue",
