@@ -674,9 +674,6 @@ static ssize_t goodix_ts_irq_info_show(struct device *dev,
 		return -EINVAL;
 
 	desc = irq_to_desc(core_data->irq);
-	if (!desc)
-		return -EINVAL;
-
 	offset += r;
 	r = snprintf(&buf[offset], PAGE_SIZE - offset, "disable-depth:%d\n",
 		     desc->depth);
@@ -738,19 +735,13 @@ static ssize_t goodix_ts_esd_info_store(struct device *dev,
 					struct device_attribute *attr,
 					const char *buf, size_t count)
 {
-	struct goodix_ts_core *core_data = dev_get_drvdata(dev);
-
 	if (!buf || count <= 0)
 		return -EINVAL;
 
-	if (buf[0] != '0') {
-		if (!core_data->esd_initialized)
-			goodix_ts_esd_init(core_data);
+	if (buf[0] != '0')
 		goodix_ts_blocking_notify(NOTIFY_ESD_ON, NULL);
-	} else if (core_data->esd_initialized) {
+	else
 		goodix_ts_blocking_notify(NOTIFY_ESD_OFF, NULL);
-	}
-
 	return count;
 }
 
@@ -2067,7 +2058,6 @@ int goodix_ts_esd_init(struct goodix_ts_core *cd)
 	ts_esd->esd_notifier.notifier_call = goodix_esd_notifier_callback;
 	goodix_ts_register_notifier(&ts_esd->esd_notifier);
 	goodix_ts_esd_on(cd);
-	cd->esd_initialized = true;
 
 	return 0;
 }
@@ -2297,7 +2287,7 @@ static void goodix_panel_notifier_callback(enum panel_event_notifier_tag tag,
 		queue_work(core_data->event_wq, &core_data->suspend_work);
 		break;
 	default:
-		ts_debug("notification serviced :%d",
+		ts_debug("notification serviced :%d\n",
 				notification->notif_type);
 		break;
 	}
@@ -2405,7 +2395,7 @@ static int goodix_get_charging_status(void)
 	if (dc_psy) {
 		rc = power_supply_get_property(dc_psy, POWER_SUPPLY_PROP_ONLINE, &val);
 		if (rc < 0)
-			ts_err("Couldn't get DC online status, rc=%d", rc);
+			ts_err("Couldn't get DC online status, rc=%d\n", rc);
 		else if (val.intval == 1)
 			return 1;
 	}
@@ -2414,7 +2404,7 @@ static int goodix_get_charging_status(void)
 	if (usb_psy) {
 		rc = power_supply_get_property(usb_psy, POWER_SUPPLY_PROP_ONLINE, &val);
 		if (rc < 0)
-			ts_err("Couldn't get usb online status, rc=%d", rc);
+			ts_err("Couldn't get usb online status, rc=%d\n", rc);
 		else if (val.intval == 1)
 			return 1;
 	}
@@ -2529,6 +2519,9 @@ int goodix_ts_stage2_init(struct goodix_ts_core *cd)
 
 	/* create procfs files */
 	goodix_ts_procfs_init(cd);
+
+	/* esd protector */
+	goodix_ts_esd_init(cd);
 
 	/* gesture init */
 	gesture_module_init();
@@ -2836,7 +2829,7 @@ static ssize_t goodix_ts_fod_test_store(struct device *dev,
 	int value = 0;
 	struct goodix_ts_core *info = dev_get_drvdata(dev);
 
-	ts_info("%s,buf:%s,count:%u", __func__, buf, count);
+	ts_info("%s,buf:%s,count:%u\n", __func__, buf, count);
 	if (kstrtoint(buf, 10, &value))
 		return -EINVAL;
 	if (value) {
@@ -3025,20 +3018,20 @@ static int goodix_set_cur_value(int gtp_mode, int gtp_value)
 	}
 	if (gtp_mode ==  Touch_Fod_Enable && goodix_core_data && gtp_value >= 0) {
 		goodix_core_data->fod_status = gtp_value;
-		ts_info("Touch_Fod_Enable value [%d]", gtp_value);
+		ts_info("Touch_Fod_Enable value [%d]\n", gtp_value);
 		queue_work(goodix_core_data->gesture_wq, &goodix_core_data->gesture_work);
 		return 0;
 	}
 	if (gtp_mode ==  Touch_FodIcon_Enable && goodix_core_data && gtp_value >= 0) {
 		goodix_core_data->fod_icon_status = gtp_value;
-		ts_info("Touch_FodIcon_Enable value [%d]", gtp_value);
+		ts_info("Touch_FodIcon_Enable value [%d]\n", gtp_value);
 		queue_work(goodix_core_data->gesture_wq, &goodix_core_data->gesture_work);
 		return 0;
 	}
 
 	if (gtp_mode ==  Touch_Nonui_Mode && goodix_core_data && gtp_value >= 0) {
 		goodix_core_data->nonui_status = gtp_value;
-		ts_info("Touch_Nonui_Mode value [%d]", gtp_value);
+		ts_info("Touch_Nonui_Mode value [%d]\n", gtp_value);
 		queue_work(goodix_core_data->gesture_wq, &goodix_core_data->gesture_work);
 		return 0;
 	}
@@ -3187,7 +3180,7 @@ static void goodix_init_touchmode_data(void)
 	xiaomi_touch_interfaces.touch_mode[Touch_Panel_Orientation][GET_CUR_VALUE] = 0;
 
 	for (i = 0; i < Touch_Mode_NUM; i++) {
-		ts_info("mode:%d, set cur:%d, get cur:%d, def:%d min:%d max:%d",
+		ts_info("mode:%d, set cur:%d, get cur:%d, def:%d min:%d max:%d\n",
 				i,
 				xiaomi_touch_interfaces.touch_mode[i][SET_CUR_VALUE],
 				xiaomi_touch_interfaces.touch_mode[i][GET_CUR_VALUE],
@@ -3411,7 +3404,7 @@ static int goodix_check_default_tp(struct device_node *dt, const char *prop)
 	ret = of_property_read_string_array(dt->parent, prop,
 			active_tp, count);
 	if (ret < 0) {
-		ts_err("fail to read %s %d", prop, ret);
+		ts_err("fail to read %s %d\n", prop, ret);
 		ret = -ENODEV;
 		goto out;
 	}
@@ -3426,7 +3419,7 @@ static int goodix_check_default_tp(struct device_node *dt, const char *prop)
 	}
 
 	if (score <= 0) {
-		ts_err("not match this driver");
+		ts_err("not match this driver\n");
 		ret = -ENODEV;
 		goto out;
 	}
@@ -3573,12 +3566,12 @@ static int goodix_ts_probe(struct platform_device *pdev)
 		if (core_data->goodix_tp_class) {
 			core_data->goodix_touch_dev = device_create(core_data->goodix_tp_class, NULL, 0x38, core_data, "tp_dev");
 			if (IS_ERR(core_data->goodix_touch_dev)) {
-				ts_err("Failed to create device !");
+				ts_err("Failed to create device !\n");
 				goto err_class_create;
 			}
 			dev_set_drvdata(core_data->goodix_touch_dev, core_data);
 			if (sysfs_create_file(&core_data->goodix_touch_dev->kobj, &dev_attr_goodix_ts_fod_test.attr)) {
-				ts_err("Failed to create fod_test sysfs group!");
+				ts_err("Failed to create fod_test sysfs group!\n");
 				goto err_class_create;
 			}
 		}
