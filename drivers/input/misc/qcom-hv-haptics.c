@@ -600,7 +600,7 @@ struct haptics_chip {
 	struct regulator		*hpwr_vreg;
 	struct hrtimer			hbst_off_timer;
 	struct hrtimer			dph_off_timer; /*DIRECT_PLAY turning off timer*/
-#ifdef CONFIG_TARGET_PRODUCT_MAYFLY
+#ifdef CONFIG_MACH_XIAOMI_MAYFLY
 	struct power_supply		*wls_psy;
 #endif
 	bool				hboost_quick_off;
@@ -1942,7 +1942,7 @@ static int haptics_get_fifo_fill_status(struct haptics_chip *chip, u32 *fill)
 	return 0;
 }
 
-#ifdef CONFIG_TARGET_PRODUCT_MAYFLY
+#ifdef CONFIG_MACH_XIAOMI_MAYFLY
 static bool get_wls_backcharge_enable(struct haptics_chip *chip) {
 	int rc;
 	union power_supply_propval val;
@@ -1969,7 +1969,7 @@ static int haptics_get_available_fifo_memory(struct haptics_chip *chip)
 {
 	int rc;
 	u32 fill, available;
-#ifdef CONFIG_TARGET_PRODUCT_MAYFLY
+#ifdef CONFIG_MACH_XIAOMI_MAYFLY
 	if (get_wls_backcharge_enable(chip)) {
 		dev_dbg(chip->dev, "wireless backcharge enabled, skip haptics!");
 		return -EBUSY;
@@ -2293,13 +2293,13 @@ static int haptics_init_custom_effect(struct haptics_chip *chip)
 	chip->custom_effect->pattern = NULL;
 	chip->custom_effect->brake = NULL;
 	chip->custom_effect->id = UINT_MAX;
-#ifdef CONFIG_TARGET_PRODUCT_DITING
+#ifdef CONFIG_MACH_XIAOMI_DITING
 	chip->custom_effect->vmax_mv = 9000;
-#elif defined(CONFIG_TARGET_PRODUCT_MONDRIAN)
+#elif defined(CONFIG_MACH_XIAOMI_MONDRIAN)
 	chip->custom_effect->vmax_mv = 9000;
-#elif defined(CONFIG_TARGET_PRODUCT_MAYFLY)
+#elif defined(CONFIG_MACH_XIAOMI_MAYFLY)
 	chip->custom_effect->vmax_mv = 9100;
-#elif defined(CONFIG_TARGET_PRODUCT_MARBLE)
+#elif defined(CONFIG_MACH_XIAOMI_MARBLE)
 	chip->custom_effect->vmax_mv = 9100;
 #else
 	chip->custom_effect->vmax_mv = 4200;	//chip->config.vmax_mv
@@ -2618,7 +2618,7 @@ static int haptics_upload_effect(struct input_dev *dev,
 	s16 level;
 	u8 amplitude;
 	int rc = 0;
-#ifdef CONFIG_TARGET_PRODUCT_MAYFLY
+#ifdef CONFIG_MACH_XIAOMI_MAYFLY
 	if(effect->type == FF_DAMPER){
 		chip->hboost_quick_off = true;
 		dev_info(chip->dev, "set hboost quick off!");
@@ -2712,7 +2712,7 @@ static int haptics_playback(struct input_dev *dev, int effect_id, int val)
 	struct haptics_chip *chip = input_get_drvdata(dev);
 	struct haptics_play_info *play = &chip->play;
 	int rc;
-#ifdef CONFIG_TARGET_PRODUCT_MAYFLY
+#ifdef CONFIG_MACH_XIAOMI_MAYFLY
 	if (get_wls_backcharge_enable(chip)) {
 		dev_dbg(chip->dev, "wireless backcharge enabled, skip haptics!");
 		val = 0;
@@ -2765,7 +2765,7 @@ static int haptics_erase(struct input_dev *dev, int effect_id)
 			dev_dbg(chip->dev, "cancelling FIFO playing\n");
 			atomic_set(&play->fifo_status.cancelled, 1);
 		}
-#if defined(CONFIG_TARGET_PRODUCT_MAYFLY) || defined(CONFIG_TARGET_PRODUCT_DITING) || defined(CONFIG_TARGET_PRODUCT_ZIZHAN) || defined(CONFIG_TARGET_PRODUCT_MONDRIAN)
+#if defined(CONFIG_MACH_XIAOMI_MAYFLY) || defined(CONFIG_MACH_XIAOMI_DITING) || defined(CONFIG_MACH_XIAOMI_ZIZHAN) || defined(CONFIG_MACH_XIAOMI_MONDRIAN)
 #define FIFO_PLAY_STOP_DELAY 9
 		msleep(FIFO_PLAY_STOP_DELAY);
 		dev_info(chip->dev, "fifo play stop delay %d ms\n", FIFO_PLAY_STOP_DELAY);
@@ -5221,7 +5221,7 @@ static int haptics_detect_lra_frequency(struct haptics_chip *chip)
 	rc = haptics_masked_write(chip, chip->cfg_addr_base,
 			HAP_CFG_AUTORES_CFG_REG, AUTORES_EN_BIT |
 			AUTORES_EN_DLY_MASK | AUTORES_ERR_WINDOW_MASK,
-#if defined(CONFIG_TARGET_PRODUCT_MONDRIAN)
+#if defined(CONFIG_MACH_XIAOMI_MONDRIAN)
 			AUTORES_EN_DLY_7_CYCLES << AUTORES_EN_DLY_SHIFT
 #else
 			AUTORES_EN_DLY_6_CYCLES << AUTORES_EN_DLY_SHIFT
@@ -5231,7 +5231,7 @@ static int haptics_detect_lra_frequency(struct haptics_chip *chip)
 		return rc;
 
 	rc = haptics_masked_write(chip, chip->cfg_addr_base,
-#if defined(CONFIG_TARGET_PRODUCT_MONDRIAN)
+#if defined(CONFIG_MACH_XIAOMI_MONDRIAN)
 			HAP_CFG_DRV_DUTY_CFG_REG, ADT_DRV_DUTY_EN_BIT |
 			DRV_DUTY_MASK, DRV_DUTY_62P5_PERCENT << DRV_DUTY_SHIFT);
 #else
