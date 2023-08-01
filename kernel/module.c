@@ -3560,7 +3560,7 @@ static char *custom_module_blacklist[] = {
     "qca6750", "cs35l41_dlkm",
     /* Already built into the kernel image */
     "aw882xx_dlkm", "lzo", "lzo_rle", "zram", "zsmalloc", "atmel_mxt_ts", "nt36xxx_i2c", "nt36xxx_spi", "synaptics_dsx", "focaltech_fts",
-	"hwid", "smem",
+	"hwid", "qcom_ipc_logging", "smem", "minidump", "qcom_glink_smem", "qcom_glink", "pmic_glink", "pdr_interface", "qmi_helpers",
     /* Xiaomi Touch */
 	"xiaomi_touch", "goodix_core", "panel_event_notifier",
     /* Coresight */
