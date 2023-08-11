@@ -329,7 +329,7 @@ flash_boot() {
           fi;
           # legacy SAR kernel string skip_initramfs -> want_initramfs
           $bin/magiskboot hexpatch kernel 736B69705F696E697472616D6673 77616E745F696E697472616D6673;
-          if [ "$(file_getprop $home/anykernel.sh do.systemless)" == 1 ]; then
+          if [ "$(file_getprop $home/anykernel.sh do.systemless)" == 1 -a ! -f $home/vertmp ]; then
             strings kernel 2>/dev/null | grep -E -m1 'Linux version.*#' > $home/vertmp;
           fi;
           if [ "$comp" ]; then
@@ -468,20 +468,20 @@ flash_generic() {
           echo "Resizing $1$slot snapshot..." >&2;
           $bin/snapshotupdater_static update $1 $imgsz || abort "Resizing $1$slot snapshot failed. Aborting...";
         else
-          echo "Removing any existing $1_ak3..." >&2;
-          $bin/lptools_static remove $1_ak3;
+          echo "Removing any existing ${1}_ak3..." >&2;
+          $bin/lptools_static remove ${1}_ak3;
           echo "Clearing any merged cow partitions..." >&2;
           $bin/lptools_static clear-cow;
-          echo "Attempting to create $1_ak3..." >&2;
-          if $bin/lptools_static create $1_ak3 $imgsz; then
-            echo "Replacing $1$slot with $1_ak3..." >&2;
-            $bin/lptools_static unmap $1_ak3 || abort "Unmapping $1_ak3 failed. Aborting...";
-            $bin/lptools_static map $1_ak3 || abort "Mapping $1_ak3 failed. Aborting...";
-            $bin/lptools_static replace $1_ak3 $1$slot || abort "Replacing $1$slot failed. Aborting...";
-            imgblock=/dev/block/mapper/$1_ak3;
+          echo "Attempting to create ${1}_ak3..." >&2;
+          if $bin/lptools_static create ${1}_ak3 $imgsz; then
+            echo "Replacing $1$slot with ${1}_ak3..." >&2;
+            $bin/lptools_static unmap ${1}_ak3 || abort "Unmapping ${1}_ak3 failed. Aborting...";
+            $bin/lptools_static map ${1}_ak3 || abort "Mapping ${1}_ak3 failed. Aborting...";
+            $bin/lptools_static replace ${1}_ak3 $1$slot || abort "Replacing $1$slot failed. Aborting...";
+            imgblock=/dev/block/mapper/${1}_ak3;
             ui_print " " "Warning: $1$slot replaced in super. Reboot before further logical partition operations.";
           else
-            echo "Creating $1_ak3 failed. Attempting to resize $1$slot..." >&2;
+            echo "Creating ${1}_ak3 failed. Attempting to resize $1$slot..." >&2;
             $bin/httools_static umount $1 || abort "Unmounting $1 failed. Aborting...";
             if [ -e $path/$1-verity ]; then
               $bin/lptools_static unmap $1-verity || abort "Unmapping $1-verity failed. Aborting...";
