@@ -489,6 +489,9 @@ else
 
 	ui_print "- Extracting modules..."
 	${bin}/7za x -tzip $home/kernel/modules.zip
+	if [ ! -d ${home}/_modules ]; then
+		abort "! Extract modules failed!"
+	fi
 	ui_print "- Updating /vendor_dlkm image..."
 	cp -f ${home}/_modules/*.ko ${extract_vendor_dlkm_modules_dir}/
 	blocklist_expr=$(echo $no_needed_kos | awk '{ printf "-vE \^\("; for (i = 1; i <= NF; i++) { if (i == NF) printf $i; else printf $i "|"; }; printf "\)" }')
