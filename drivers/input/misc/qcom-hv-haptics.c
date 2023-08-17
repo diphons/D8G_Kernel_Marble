@@ -1062,7 +1062,7 @@ static int haptics_get_closeloop_lra_period(
 	u64 tmp;
 	int rc;
 
-#ifdef QCOM_HAPTIC_F0_PROTECT
+#ifdef CONFIG_MACH_XIAOMI_MARBLE
 	//protect low rate of xbl f0 abnormal for L18 only
 	int f0_mix, f0_max, f0_default, f0_cnt;
 	int rc1, rc2, rc3, rc4;
@@ -1196,7 +1196,7 @@ static int haptics_get_closeloop_lra_period(
 		tmp = div_u64(tmp, last_good_tlra_cl_sts);
 		tmp = div_u64(tmp, 293);
 		config->rc_clk_cal_count = div_u64(tmp, config->t_lra_us);
-#ifdef QCOM_HAPTIC_F0_PROTECT
+#ifdef CONFIG_MACH_XIAOMI_MARBLE
 		//protect low rate of xbl f0 abnormal for L18 only
 		if(in_boot){
 			u32  xbl_f0 = USEC_PER_SEC / config->cl_t_lra_us;
