@@ -313,7 +313,7 @@ mkfs_erofs() {
 
 inject_module(){
 ########## CUSTOM START ##########
-
+gagal=0
 ui_print " "
 ui_print "Start Injecting modules"
 ui_print "by Pzqqt"
@@ -372,169 +372,208 @@ if [ "$rc" != 0 ]; then
 		ui_print "If you are installing the kernel in an app, try using another app."
 		ui_print "Recommend KernelFlasher:"
 		ui_print "  https://github.com/capntrips/KernelFlasher/releases"
-	fi
-	abort "Aborting..."
-fi
-snapshot_status=$(${bin}/snapshotupdater_static dump 2>/dev/null | grep '^Update state:' | awk '{print $3}')
-ui_print "Current snapshot state: $snapshot_status"
-if [ "$snapshot_status" != "none" ]; then
-	ui_print " "
-	ui_print "Seems like you just installed a rom update."
-	if [ "$snapshot_status" == "merging" ]; then
-		ui_print "Please use the rom for a while to wait for"
-		ui_print "the system to complete the snapshot merge."
-		ui_print "It's also possible to use the \"Merge Snapshots\" feature"
-		ui_print "in TWRP's Advanced menu to instantly merge snapshots."
 	else
-		ui_print "Please reboot at least once before attempting to install!"
+		ui_print "Please try to reboot to system once before installing!"
 	fi
-	abort "Aborting..."
+	ui_print "Aborting inject vendor_dlkm..."
+	gagal=1
 fi
-unset rc snapshot_status
+if [ $gagal != 1 ]; then
+	snapshot_status=$(${bin}/snapshotupdater_static dump 2>/dev/null | grep '^Update state:' | awk '{print $3}')
+	ui_print "Current snapshot state: $snapshot_status"
+	if [ "$snapshot_status" != "none" ] && [ $gagal != 1 ]; then
+		ui_print " "
+		ui_print "Seems like you just installed a rom update."
+		if [ "$snapshot_status" == "merging" ]; then
+			ui_print "Please use the rom for a while to wait for"
+			ui_print "the system to complete the snapshot merge."
+			ui_print "It's also possible to use the \"Merge Snapshots\" feature"
+			ui_print "in TWRP's Advanced menu to instantly merge snapshots."
+		else
+			ui_print "Please try to reboot to system once before installing!"
+		fi
+		ui_print "Aborting inject vendor_dlkm..."
+		gagal=1
+	fi
+	unset rc snapshot_status
 
-# Check vendor_dlkm partition status
-[ -d /vendor_dlkm ] || mkdir /vendor_dlkm
-is_mounted /vendor_dlkm || \
-	mount /vendor_dlkm -o ro || mount /dev/block/mapper/vendor_dlkm${slot} /vendor_dlkm -o ro || \
-		abort "! Failed to mount /vendor_dlkm"
+	if [[ $gagal != 1 ]]; then
+	# Check vendor_dlkm partition status
+	[ -d /vendor_dlkm ] || mkdir /vendor_dlkm
+	is_mounted /vendor_dlkm || \
+		mount /vendor_dlkm -o ro || mount /dev/block/mapper/vendor_dlkm${slot} /vendor_dlkm -o ro || \
+			ui_print "Failed to mount /vendor_dlkm" gagal=1
 
-strings ${home}/Image 2>/dev/null | grep -E -m1 'Linux version.*#' > ${home}/vertmp
+	if [ $gagal != 1 ]; then
+		strings ${home}/Image 2>/dev/null | grep -E -m1 'Linux version.*#' > ${home}/vertmp
 
-skip_update_flag=false
-do_backup_flag=false
-if [ -f /vendor_dlkm/lib/modules/vertmp ]; then
-	[ "$(cat /vendor_dlkm/lib/modules/vertmp)" == "$(cat ${home}/vertmp)" ] && skip_update_flag=true
-else
-	do_backup_flag=true
-fi
-umount /vendor_dlkm
+		skip_update_flag=false
+		do_backup_flag=false
+		if [ -f /vendor_dlkm/lib/modules/vertmp ]; then
+			[ "$(cat /vendor_dlkm/lib/modules/vertmp)" == "$(cat ${home}/vertmp)" ] && skip_update_flag=true
+		else
+			do_backup_flag=true
+		fi
+		umount /vendor_dlkm
 
-# Fix unable to mount image as read-write in recovery
-$BOOTMODE || setenforce 0
-
-ui_print " "
-if $skip_update_flag; then
-	ui_print "- No need to update /vendor_dlkm partition."
-else
-	# Dump vendor_dlkm partition image
-	dd if=/dev/block/mapper/vendor_dlkm${slot} of=${home}/vendor_dlkm.img
-
-	# Backup kernel and vendor_dlkm image
-	if $do_backup_flag; then
-		ui_print "- It looks like you are installing D8G Kernel for the first time."
-		ui_print "- Next will backup the kernel and vendor_dlkm partitions..."
-
-		backup_package=/sdcard/D8G_Kernel-restore-$(date +"%Y%m%d-%H%M%S").zip
-		${bin}/7za a -tzip -bd $backup_package \
-			${home}/META-INF ${bin} ${home}/LICENSE ${home}/_restore_anykernel.sh ${split_img}/kernel ${home}/vendor_dlkm.img
-		${bin}/7za rn -bd $backup_package kernel Image
-		${bin}/7za rn -bd $backup_package _restore_anykernel.sh anykernel.sh
-		sync
+		# Fix unable to mount image as read-write in recovery
+		$BOOTMODE || setenforce 0
 
 		ui_print " "
-		ui_print "- The current kernel and vendor_dlkm have been backedup to:"
-		ui_print "  $backup_package"
-		ui_print "- If you encounter an unexpected situation,"
-		ui_print "  or want to restore the stock kernel,"
-		ui_print "  please flash it in TWRP or some supported apps."
-		ui_print " "
+		if $skip_update_flag; then
+			ui_print "- No need to update /vendor_dlkm partition."
+		else
+			# Dump vendor_dlkm partition image
+			dd if=/dev/block/mapper/vendor_dlkm${slot} of=${home}/vendor_dlkm.img
 
-		unset backup_package
-	fi
+			# Backup kernel and vendor_dlkm image
+			if $do_backup_flag; then
+				ui_print "- It looks like you are installing D8G Kernel for the first time."
+				ui_print "- Next will backup the kernel and vendor_dlkm partitions..."
 
-	ui_print "- Unpacking /vendor_dlkm partition..."
-	extract_vendor_dlkm_dir=${home}/_extract_vendor_dlkm
-	mkdir -p $extract_vendor_dlkm_dir
-	vendor_dlkm_is_ext4=false
-	extract_erofs ${home}/vendor_dlkm.img $extract_vendor_dlkm_dir || vendor_dlkm_is_ext4=true
-	sync
+				build_prop=/system/build.prop
+				[ -d /system_root/system ] && build_prop=/system_root/$build_prop
+				backup_package=/sdcard/D8G_Kernel-restore-$(date +"%Y%m%d-%H%M%S").zip
+				${bin}/7za a -tzip -bd $backup_package \
+					${home}/META-INF ${bin} ${home}/LICENSE ${home}/_restore_anykernel.sh ${split_img}/kernel ${home}/vendor_dlkm.img
+				${bin}/7za rn -bd $backup_package kernel Image
+				${bin}/7za rn -bd $backup_package _restore_anykernel.sh anykernel.sh
+				sync
 
-	if $vendor_dlkm_is_ext4; then
-		ui_print "- /vendor_dlkm partition seems to be in ext4 file system."
-		mount ${home}/vendor_dlkm.img $extract_vendor_dlkm_dir -o ro -t ext4 || \
-			abort "! Unsupported file system!"
-		vendor_dlkm_free_space=$(df -k | grep -E "[[:space:]]$extract_vendor_dlkm_dir\$" | awk '{print $4}')
-		umount $extract_vendor_dlkm_dir
+				ui_print " "
+				ui_print "- The current kernel and vendor_dlkm have been backedup to:"
+				ui_print "  $backup_package"
+				ui_print "- If you encounter an unexpected situation,"
+				ui_print "  or want to restore the stock kernel,"
+				ui_print "  please flash it in TWRP or some supported apps."
+				ui_print " "
+				touch ${home}/do_backup_flag
 
-		[ "$vendor_dlkm_free_space" -gt 10240 ] || {
-			# Resize vendor_dlkm image
-			ui_print "- /vendor_dlkm partition does not have enough free space!"
-			ui_print "- Trying to resize..."
-			super_free_space=$(${bin}/lptools_static free | grep '^Free space' | awk '{print $NF}')
-			[ "$super_free_space" -gt "$((10 * 1024 * 1024))" ] || {
-				ui_print "! Super device does not have enough free space!"
-				abort "! We have tried all known methods!"
+				unset build_prop backup_package
+			fi
+
+			ui_print "- Unpacking /vendor_dlkm partition..."
+			extract_vendor_dlkm_dir=${home}/_extract_vendor_dlkm
+			mkdir -p $extract_vendor_dlkm_dir
+			vendor_dlkm_is_ext4=false
+			extract_erofs ${home}/vendor_dlkm.img $extract_vendor_dlkm_dir || vendor_dlkm_is_ext4=true
+			sync
+
+			if $vendor_dlkm_is_ext4; then
+				ui_print "- /vendor_dlkm partition seems to be in ext4 file system."
+				mount ${home}/vendor_dlkm.img $extract_vendor_dlkm_dir -o ro -t ext4 || \
+					ui_print "! Unsupported file system!" gagal=1
+				if [ $gagal != 1 ]; then
+					vendor_dlkm_free_space=$(df -k | grep -E "[[:space:]]$extract_vendor_dlkm_dir\$" | awk '{print $4}')
+					umount $extract_vendor_dlkm_dir
+
+					if [ $gagal != 1 ]; then
+						[ "$vendor_dlkm_free_space" -gt 10240 ] || {
+						# Resize vendor_dlkm image
+						ui_print "- /vendor_dlkm partition does not have enough free space!"
+						ui_print "- Trying to resize..."
+						super_free_space=$(${bin}/lptools_static free | grep '^Free space' | awk '{print $NF}')
+						[ "$super_free_space" -gt "$((10 * 1024 * 1024))" ] || {
+							ui_print "! Super device does not have enough free space!"
+							ui_print "! We have tried all known methods!"
+							gagal=1
+						}
+
+						if [ $gagal != 1 ]; then
+							${bin}/e2fsck -f -y ${home}/vendor_dlkm.img
+							vendor_dlkm_current_size_mb=$(du -bm ${home}/vendor_dlkm.img | awk '{print $1}')
+							vendor_dlkm_target_size_mb=$((vendor_dlkm_current_size_mb + 10))
+							${bin}/resize2fs ${home}/vendor_dlkm.img "${vendor_dlkm_target_size_mb}M" || \
+								ui_print "! Failed to resize vendor_dlkm image!" gagal=1
+							if [ $gagal != 1 ]; then
+								ui_print "- Resized vendor_dlkm.img size: ${vendor_dlkm_target_size_mb}M."
+								# e2fsck again
+								${bin}/e2fsck -f -y ${home}/vendor_dlkm.img
+
+								unset super_free_space vendor_dlkm_current_size_mb vendor_dlkm_target_size_mb
+							fi
+						fi
+						}
+
+						if [ $gagal != 1 ]; then
+							ui_print "- Trying to mount vendor_dlkm image as read-write..."
+							mount ${home}/vendor_dlkm.img $extract_vendor_dlkm_dir -o rw -t ext4 || \
+								ui_print "! Failed to mount vendor_dlkm.img as read-write!" gagal=1
+
+							if [ $gagal != 1 ]; then
+								extract_vendor_dlkm_modules_dir=${extract_vendor_dlkm_dir}/lib/modules
+							fi
+						fi
+					fi
+				fi
+			else
+				if [ $gagal != 1 ]; then
+					extract_vendor_dlkm_modules_dir=${extract_vendor_dlkm_dir}/vendor_dlkm/lib/modules
+				fi
+			fi
+
+			if [ $gagal != 1 ]; then
+				ui_print "- Extracting modules..."
+				${bin}/7za x -tzip $home/kernel/modules.zip
+				if [ ! -d ${home}/_modules ]; then
+					ui_print "! Extract modules failed!"
+					gagal=1
+				fi
+				if [ $gagal != 1 ]; then
+					ui_print "- Updating /vendor_dlkm image..."
+					cp -f ${home}/_modules/*.ko ${extract_vendor_dlkm_modules_dir}/
+					blocklist_expr=$(echo $no_needed_kos | awk '{ printf "-vE \^\("; for (i = 1; i <= NF; i++) { if (i == NF) printf $i; else printf $i "|"; }; printf "\)" }')
+					mv -f ${extract_vendor_dlkm_modules_dir}/modules.load ${extract_vendor_dlkm_modules_dir}/modules.load.old
+					cat ${extract_vendor_dlkm_modules_dir}/modules.load.old | grep $blocklist_expr > ${extract_vendor_dlkm_modules_dir}/modules.load
+					rm -f ${extract_vendor_dlkm_modules_dir}/modules.load.old
+					for f in $no_needed_kos; do
+						rm -f ${extract_vendor_dlkm_modules_dir}/$f
+					done
+					cp -f ${home}/vertmp ${extract_vendor_dlkm_modules_dir}/vertmp
+					sync
+
+					if $vendor_dlkm_is_ext4; then
+						set_perm 0 0 0644 ${extract_vendor_dlkm_modules_dir}/vertmp
+						chcon u:object_r:vendor_file:s0 ${extract_vendor_dlkm_modules_dir}/vertmp
+						umount $extract_vendor_dlkm_dir
+					else
+						cat ${extract_vendor_dlkm_dir}/config/vendor_dlkm_fs_config | grep -q 'lib/modules/vertmp' || \
+							echo 'vendor_dlkm/lib/modules/vertmp 0 0 0644' >> ${extract_vendor_dlkm_dir}/config/vendor_dlkm_fs_config
+						cat ${extract_vendor_dlkm_dir}/config/vendor_dlkm_file_contexts | grep -q 'lib/modules/vertmp' || \
+							echo '/vendor_dlkm/lib/modules/vertmp u:object_r:vendor_file:s0' >> ${extract_vendor_dlkm_dir}/config/vendor_dlkm_file_contexts
+						ui_print "- Repacking /vendor_dlkm image..."
+						rm -f ${home}/vendor_dlkm.img
+						mkfs_erofs ${extract_vendor_dlkm_dir}/vendor_dlkm ${home}/vendor_dlkm.img || \
+							ui_print "! Failed to repack the vendor_dlkm image!"
+						if [ $gagal != 1 ]; then
+							rm -rf ${extract_vendor_dlkm_dir}
+						fi
+					fi
+
+					if [ $gagal != 1 ]; then
+						unset vendor_dlkm_is_ext4 vendor_dlkm_free_space extract_vendor_dlkm_dir extract_vendor_dlkm_modules_dir blocklist_expr
+					fi
+				fi
+			fi
+		fi
+
+		if [ $gagal != 1 ]; then
+			unset no_needed_kos skip_update_flag do_backup_flag
+
+			# Patch vbmeta
+			for vbmeta_blk in /dev/block/bootdevice/by-name/vbmeta${slot} /dev/block/bootdevice/by-name/vbmeta_system${slot}; do
+			ui_print "- Patching ${vbmeta_blk} ..."
+			${bin}/vbmeta-disable-verification $vbmeta_blk || {
+				ui_print "! Failed to patching ${vbmeta_blk}!"
+				ui_print "- If the device won't boot after the installation,"
+				ui_print "  please manually disable AVB in TWRP."
 			}
+			done
+		fi
 
-			${bin}/e2fsck -f -y ${home}/vendor_dlkm.img
-			vendor_dlkm_current_size_mb=$(du -bm ${home}/vendor_dlkm.img | awk '{print $1}')
-			vendor_dlkm_target_size_mb=$((vendor_dlkm_current_size_mb + 10))
-			${bin}/resize2fs ${home}/vendor_dlkm.img "${vendor_dlkm_target_size_mb}M" || \
-				abort "! Failed to resize vendor_dlkm image!"
-			ui_print "- Resized vendor_dlkm.img size: ${vendor_dlkm_target_size_mb}M."
-			# e2fsck again
-			${bin}/e2fsck -f -y ${home}/vendor_dlkm.img
-
-			unset super_free_space vendor_dlkm_current_size_mb vendor_dlkm_target_size_mb
-		}
-
-		ui_print "- Trying to mount vendor_dlkm image as read-write..."
-		mount ${home}/vendor_dlkm.img $extract_vendor_dlkm_dir -o rw -t ext4 || \
-			abort "! Failed to mount vendor_dlkm.img as read-write!"
-
-		extract_vendor_dlkm_modules_dir=${extract_vendor_dlkm_dir}/lib/modules
-	else
-		extract_vendor_dlkm_modules_dir=${extract_vendor_dlkm_dir}/vendor_dlkm/lib/modules
 	fi
-
-	ui_print "- Extracting modules..."
-	${bin}/7za x -tzip $home/kernel/modules.zip
-	if [ ! -d ${home}/_modules ]; then
-		abort "! Extract modules failed!"
 	fi
-	ui_print "- Updating /vendor_dlkm image..."
-	cp -f ${home}/_modules/*.ko ${extract_vendor_dlkm_modules_dir}/
-	blocklist_expr=$(echo $no_needed_kos | awk '{ printf "-vE \^\("; for (i = 1; i <= NF; i++) { if (i == NF) printf $i; else printf $i "|"; }; printf "\)" }')
-	mv -f ${extract_vendor_dlkm_modules_dir}/modules.load ${extract_vendor_dlkm_modules_dir}/modules.load.old
-	cat ${extract_vendor_dlkm_modules_dir}/modules.load.old | grep $blocklist_expr > ${extract_vendor_dlkm_modules_dir}/modules.load
-	rm -f ${extract_vendor_dlkm_modules_dir}/modules.load.old
-	for f in $no_needed_kos; do
-		rm -f ${extract_vendor_dlkm_modules_dir}/$f
-	done
-	cp -f ${home}/vertmp ${extract_vendor_dlkm_modules_dir}/vertmp
-	sync
-
-	if $vendor_dlkm_is_ext4; then
-		set_perm 0 0 0644 ${extract_vendor_dlkm_modules_dir}/vertmp
-		chcon u:object_r:vendor_file:s0 ${extract_vendor_dlkm_modules_dir}/vertmp
-		umount $extract_vendor_dlkm_dir
-	else
-		cat ${extract_vendor_dlkm_dir}/config/vendor_dlkm_fs_config | grep -q 'lib/modules/vertmp' || \
-			echo 'vendor_dlkm/lib/modules/vertmp 0 0 0644' >> ${extract_vendor_dlkm_dir}/config/vendor_dlkm_fs_config
-		cat ${extract_vendor_dlkm_dir}/config/vendor_dlkm_file_contexts | grep -q 'lib/modules/vertmp' || \
-			echo '/vendor_dlkm/lib/modules/vertmp u:object_r:vendor_file:s0' >> ${extract_vendor_dlkm_dir}/config/vendor_dlkm_file_contexts
-		ui_print "- Repacking /vendor_dlkm image..."
-		rm -f ${home}/vendor_dlkm.img
-		mkfs_erofs ${extract_vendor_dlkm_dir}/vendor_dlkm ${home}/vendor_dlkm.img || \
-			abort "! Failed to repack the vendor_dlkm image!"
-		rm -rf ${extract_vendor_dlkm_dir}
-	fi
-
-	unset vendor_dlkm_is_ext4 vendor_dlkm_free_space extract_vendor_dlkm_dir extract_vendor_dlkm_modules_dir blocklist_expr
 fi
-
-unset no_needed_kos skip_update_flag do_backup_flag
-
-# Patch vbmeta
-for vbmeta_blk in /dev/block/bootdevice/by-name/vbmeta${slot} /dev/block/bootdevice/by-name/vbmeta_system${slot}; do
-	ui_print "- Patching ${vbmeta_blk} ..."
-	${bin}/vbmeta-disable-verification $vbmeta_blk || {
-		ui_print "! Failed to patching ${vbmeta_blk}!"
-		ui_print "- If the device won't boot after the installation,"
-		ui_print "  please manually disable AVB in TWRP."
-	}
-done
-
 ########## CUSTOM END ##########
 }
 
@@ -545,7 +584,6 @@ if [ -f $home/kernel/modules.zip ]; then
 	ui_print "Add support more feature with new module ?"
 	ui_print " "
 	ui_print "Required : "
-	ui_print " - Stock vendor_dlkm (erofs)"
 	ui_print " - Decrypt"
 	ui_print " "
 	ui_print "   Vol+ = Yes, Vol- = No"
@@ -554,8 +592,27 @@ if [ -f $home/kernel/modules.zip ]; then
 	ui_print "   No!!... Skip"
 	ui_print " "
 	if $FUNCTION; then
-		ui_print "-> Inject module Selected.."
-		install_md=1
+		ui_print " "
+		ui_print "Inject modules.."
+		ui_print " "
+		ui_print " Warning..."
+		ui_print " "
+		ui_print " The worst possibility is to fail in the vendor_dlkm inject process"
+		ui_print " "
+		ui_print " If injection failed you can flash backup vendor_dlkm"
+		ui_print " on sdcard or you can dirty-flash previous rom"
+		ui_print " "
+		ui_print "Continue ?"
+		ui_print " "
+		ui_print "   Vol+ = Yes, Vol- = No"
+		ui_print " "
+		if $FUNCTION; then
+			ui_print "-> Inject module Selected.."
+			install_md=1
+		else
+			ui_print "-> Skip Inject module Selected.."
+			install_md=0
+		fi
 	else
 		ui_print "-> Skip Inject module Selected.."
 		install_md=0
@@ -636,6 +693,12 @@ ui_print " "
 echo 0 > $D8G_DIR/pure;
 if [ $install_md = 1 ]; then
 	inject_module
+	if [ $gagal = 1 ]; then
+		ui_print "--------"
+		ui_print "Inject vendor_dlkm failed"
+		ui_print "Skip inject to resume install kernel"
+		ui_print " "
+	fi
 fi
 umount /system || true
 umount /vendor || true
