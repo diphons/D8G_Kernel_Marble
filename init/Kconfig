@@ -2538,3 +2538,7 @@ source "init/Kconfig.gki"
 source "init/Kconfig.gki-debug"
 
 source "kernel/sched/cpufreq_effiency/Kconfig"
+
+config GIT_VERSION
+	int "Default git verison"
+	default 0
