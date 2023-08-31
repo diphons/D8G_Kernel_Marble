@@ -162,16 +162,16 @@ if [ -f $dtb_image_oc ]; then
 			if $FUNCTION; then
 				ui_print "-> Include DTB with UV OC GPU selected.."
 				install_dtb="  -> Included DTB with UV OC GPU..."
-				cp $dtb_image_voc $home/dtb
+				install_dt=$dtb_image_voc
 			else
 				ui_print "-> Include DTB with OC GPU selected.."
 				install_dtb="  -> Included DTB with OC GPU..."
-				cp $dtb_image_oc $home/dtb
+				install_dt=$dtb_image_oc
 			fi
 		else
 			ui_print "-> Include DTB with OC GPU selected.."
 			install_dtb="  -> Included DTB with OC GPU..."
-			cp $dtb_image_oc $home/dtb
+			install_dt=$dtb_image_oc
 		fi
 	else
 		if [ -f $dtb_image_v ]; then
@@ -188,16 +188,16 @@ if [ -f $dtb_image_oc ]; then
 			if $FUNCTION; then
 				ui_print "-> Include DTB with UV Stock GPU selected.."
 				install_dtb="  -> Included DTB with UV Stock GPU..."
-				cp $dtb_image_v $home/dtb
+				install_dt=$dtb_image_v
 			else
 				ui_print "-> Include DTB with Stock GPU selected.."
 				install_dtb="  -> Included DTB with Stock GPU..."
-				cp $dtb_image $home/dtb
+				install_dt=$dtb_image
 			fi
 		else
 			ui_print "-> Include DTB with Stock GPU selected.."
 			install_dtb="  -> Included DTB with Stock GPU..."
-			cp $dtb_image $home/dtb
+			install_dt=$dtb_image
 		fi
 	fi
 else
@@ -215,16 +215,16 @@ else
 		if $FUNCTION; then
 			ui_print "-> Include DTB with UV Stock GPU selected.."
 			install_dtb="  -> Included DTB with UV Stock GPU..."
-			cp $dtb_image_v $home/dtb
+			install_dt=$dtb_image_v
 		else
 			ui_print "-> Include DTB with Stock GPU selected.."
 			install_dtb="  -> Included DTB with Stock GPU..."
-			cp $dtb_image $home/dtb
+			install_dt=$dtb_image
 		fi
 	else
 		ui_print "-> Include DTB with Stock GPU selected.."
 		install_dtb="  -> Included DTB with Stock GPU..."
-		cp $dtb_image $home/dtb
+		install_dt=$dtb_image
 	fi
 fi
 
@@ -250,45 +250,139 @@ else
 	patch_cmdline androidboot.selinux androidboot.selinux=enforcing
 fi
 
+repack_rmdk_vendor(){
+	cd $vndramdisk;
+	if [ -f $rdc ]; then
+		rm -f $rdc
+	fi
+	find . | cpio -H newc -o > $vboot_dir/$rdcn;
+
+	cd $vboot_dir;
+	if [ -f $rdcn ]; then
+		rm -fr $vndramdisk
+	fi
+	$bin/magiskboot compress=$vext $rdcn;
+	rm -f $rdcn
+
+	if [ -f $rdcn.$vext ]; then
+		mv $vboot_dir/$rdcn.$vext $vboot_dir/$rdc
+	elif [ -f $rdcn.lz4 ]; then
+		mv $vboot_dir/$rdcn.lz4 $vboot_dir/$rdc
+	else
+		ui_print "   Repacking ramdisk failed. Aborting...";
+		batal=1
+	fi
+}
+
+patch_ramdisk(){
+	#modules
+	if [ -d $home/kernel/ramdisk ]; then
+		ui_print " - Patch ramdisk modules"
+		if [ -f $rdc.gz ]; then
+			mv -f $rdc.gz $rdc;
+		fi
+		if [ -f ramdisk.cpio ]; then
+			vext=$($bin/magiskboot decompress $rdc 2>&1 | grep -v 'raw' | sed -n 's;.*\[\(.*\)\];\1;p');
+		else
+			ui_print "   No ramdisk found to unpack. Aborting patch ramdisk";
+			batal=1
+		fi;
+		if [ $batal != 1 ]; then
+			if [ "$vext" ]; then
+				ui_print " - Decompress $rdc.$vext...";
+				cp -f $rdc $rdc.$vext;
+				$bin/magiskboot decompress $rdc.$vext $rdcn;
+				if [ -f $rdcn ]; then
+					ui_print "   decompress $rdc.$vext success...";
+				else
+					batal=1
+					ui_print "   decompress $rdc.$vext failed...";
+				fi
+				rm -f $rdc.$vext
+			fi;
+			if [ $batal != 1 ]; then
+				if [ -d $vndramdisk ]; then
+					rm -fr $vndramdisk
+				fi
+				mkdir -p $vndramdisk;
+				chmod 755 $vndramdisk;
+			
+				if [ -d $vndramdisk ]; then
+					mv $rdcn $vndramdisk/$rdc
+					cd $vndramdisk
+					EXTRACT_UNSAFE_SYMLINKS=1 cpio -d -F $rdc -i;
+					if [ -d $vndramdisk/lib/modules ]; then
+						ui_print " - Updating modules...";
+						if [ -f $vndramdisk/lib/modules/sched-walt.ko ]; then
+							mv $home/kernel/ramdisk/sched-walt.ko $vndramdisk/lib/modules/sched-walt.ko
+							if [ ! -f $home/kernel/ramdisk/sched-walt.ko ]; then
+								ui_print "   Updating success...";
+							else
+								ui_print "   Updating failed...";
+							fi
+						else
+							batal=1
+							ui_print "   Updating failed... skip patch modules vendor_boot";
+							if [ -d $vndramdisk ]; then
+								rm -fr $vndramdisk
+							fi
+						fi
+					fi
+				fi
+			fi
+			if [ $batal != 1 ]; then
+				repack_rmdk_vendor
+			fi
+		fi
+	fi
+}
+
 vboot_dir=$home/vendor_boot
 block_vd=/dev/block/bootdevice/by-name/vendor_boot$get_slot
+vndramdisk=$vboot_dir/ramdisk;
+rdc=ramdisk.cpio
+rdcn=ramdisk-new.cpio
+vendorboot_main(){
 #Vendor Boot Patch
-if [ -f $home/dtb ]; then
-	ui_print " "
-	ui_print " "
-	ui_print "Installing D8G dtb :"
+if [ -f $install_dt ]; then
+	batal=0
 	if [ ! -d $vboot_dir ]; then
 		mkdir -p $vboot_dir
 	fi;
-	ui_print "  -> Getting DTB image"
+	ui_print " - Getting DTB image"
 	dd if=$block_vd of=$vboot_dir/boot.img
 	if [ -f $vboot_dir/boot.img ]; then
-		cd $vboot_dir
-		ui_print "  -> Unpack DTB image"
-		$bin/magiskboot unpack -h boot.img;
-		ui_print "  -> Patch DTB image"
+		cd $vboot_dir;
+		ui_print " - Unpack DTB image"
+		$bin/magiskboot unpack -h $vboot_dir/boot.img;
+		ui_print " - Patch DTB image"
 		if [ -f $vboot_dir/dtb ]; then
 			rm -f $vboot_dir/dtb
 		fi;
-		mv $home/dtb $vboot_dir/dtb
-		ui_print "  -> Repack DTB image"
-		$bin/magiskboot repack -n boot.img vendor_boot.img;
+		mv $install_dt $vboot_dir/dtb
+		
+		#Patch ramdisk
+		
+		ui_print " - Repack DTB image"
+		$bin/magiskboot repack -n $vboot_dir/boot.img $vboot_dir/vendor_boot.img;
 		if [ -f $vboot_dir/vendor_boot.img ]; then
 			dd if=$vboot_dir/vendor_boot.img of=$block_vd
-			ui_print "  -> Patch DTB image success"
+			ui_print " - Patch DTB image success"
 			ui_print " "
 		else
-			ui_print "  -> Patch DTB image failed"
+			ui_print " - Patch DTB image failed"
 			ui_print " "
 		fi;
+		
 		cd $home
 		rm -fr $vboot_dir
 	else
-		ui_print "  -> Error while getting DTB image"
-		ui_print "      Can't get slot on vendor boot"
+		ui_print " - Error while getting DTB image"
+		ui_print "   Can't get slot on vendor boot"
 		ui_print " "
 	fi;
 fi;
+}
 
 extract_erofs() {
 	local img_file=$1
@@ -314,9 +408,8 @@ mkfs_erofs() {
 inject_module(){
 ########## CUSTOM START ##########
 gagal=0
-ui_print " "
-ui_print "Start Injecting modules"
-ui_print "by Pzqqt"
+ui_print " - Start Injecting modules"
+ui_print "   by Pzqqt"
 ui_print " "
 
 BOOTMODE=false;
@@ -367,32 +460,32 @@ is_mounted() { mount | grep -q " $1 "; }
 ${bin}/snapshotupdater_static dump &>/dev/null
 rc=$?
 if [ "$rc" != 0 ]; then
-	ui_print "Cannot get snapshot status via snapshotupdater_static! rc=$rc."
+	ui_print " - Cannot get snapshot status via snapshotupdater_static! rc=$rc."
 	if $BOOTMODE; then
-		ui_print "If you are installing the kernel in an app, try using another app."
-		ui_print "Recommend KernelFlasher:"
-		ui_print "  https://github.com/capntrips/KernelFlasher/releases"
+		ui_print "   If you are installing the kernel in an app, try using another app."
+		ui_print "   Recommend KernelFlasher:"
+		ui_print "     https://github.com/capntrips/KernelFlasher/releases"
 	else
-		ui_print "Please try to reboot to system once before installing!"
+		ui_print "   Please try to reboot to system once before installing!"
 	fi
-	ui_print "Aborting inject vendor_dlkm..."
+	ui_print "   Aborting inject vendor_dlkm..."
 	gagal=1
 fi
 if [ $gagal != 1 ]; then
 	snapshot_status=$(${bin}/snapshotupdater_static dump 2>/dev/null | grep '^Update state:' | awk '{print $3}')
-	ui_print "Current snapshot state: $snapshot_status"
+	ui_print " - Current snapshot state: $snapshot_status"
 	if [ "$snapshot_status" != "none" ] && [ $gagal != 1 ]; then
 		ui_print " "
-		ui_print "Seems like you just installed a rom update."
+		ui_print "   Seems like you just installed a rom update."
 		if [ "$snapshot_status" == "merging" ]; then
-			ui_print "Please use the rom for a while to wait for"
-			ui_print "the system to complete the snapshot merge."
-			ui_print "It's also possible to use the \"Merge Snapshots\" feature"
-			ui_print "in TWRP's Advanced menu to instantly merge snapshots."
+			ui_print "   Please use the rom for a while to wait for"
+			ui_print "   the system to vextlete the snapshot merge."
+			ui_print "   It's also possible to use the \"Merge Snapshots\" feature"
+			ui_print "   in TWRP's Advanced menu to instantly merge snapshots."
 		else
-			ui_print "Please try to reboot to system once before installing!"
+			ui_print "   Please try to reboot to system once before installing!"
 		fi
-		ui_print "Aborting inject vendor_dlkm..."
+		ui_print "   Aborting inject vendor_dlkm..."
 		gagal=1
 	fi
 	unset rc snapshot_status
@@ -402,7 +495,7 @@ if [ $gagal != 1 ]; then
 	[ -d /vendor_dlkm ] || mkdir /vendor_dlkm
 	is_mounted /vendor_dlkm || \
 		mount /vendor_dlkm -o ro || mount /dev/block/mapper/vendor_dlkm${slot} /vendor_dlkm -o ro || \
-			ui_print "Failed to mount /vendor_dlkm" gagal=1
+			ui_print " - Failed to mount /vendor_dlkm" gagal=1
 
 	if [ $gagal != 1 ]; then
 		strings ${home}/Image 2>/dev/null | grep -E -m1 'Linux version.*#' > ${home}/vertmp
@@ -421,15 +514,15 @@ if [ $gagal != 1 ]; then
 
 		ui_print " "
 		if $skip_update_flag; then
-			ui_print "- No need to update /vendor_dlkm partition."
+			ui_print " - No need to update /vendor_dlkm partition."
 		else
 			# Dump vendor_dlkm partition image
 			dd if=/dev/block/mapper/vendor_dlkm${slot} of=${home}/vendor_dlkm.img
 
 			# Backup kernel and vendor_dlkm image
 			if $do_backup_flag; then
-				ui_print "- It looks like you are installing D8G Kernel for the first time."
-				ui_print "- Next will backup the kernel and vendor_dlkm partitions..."
+				ui_print " - It looks like you are installing D8G Kernel for the first time."
+				ui_print "   Next will backup the kernel and vendor_dlkm partitions..."
 
 				build_prop=/system/build.prop
 				[ -d /system_root/system ] && build_prop=/system_root/$build_prop
@@ -460,9 +553,9 @@ if [ $gagal != 1 ]; then
 			sync
 
 			if $vendor_dlkm_is_ext4; then
-				ui_print "- /vendor_dlkm partition seems to be in ext4 file system."
+				ui_print " - /vendor_dlkm partition seems to be in ext4 file system."
 				mount ${home}/vendor_dlkm.img $extract_vendor_dlkm_dir -o ro -t ext4 || \
-					ui_print "! Unsupported file system!" gagal=1
+					ui_print " - Unsupported file system!" gagal=1
 				if [ $gagal != 1 ]; then
 					vendor_dlkm_free_space=$(df -k | grep -E "[[:space:]]$extract_vendor_dlkm_dir\$" | awk '{print $4}')
 					umount $extract_vendor_dlkm_dir
@@ -470,12 +563,12 @@ if [ $gagal != 1 ]; then
 					if [ $gagal != 1 ]; then
 						[ "$vendor_dlkm_free_space" -gt 10240 ] || {
 						# Resize vendor_dlkm image
-						ui_print "- /vendor_dlkm partition does not have enough free space!"
-						ui_print "- Trying to resize..."
+						ui_print " - /vendor_dlkm partition does not have enough free space!"
+						ui_print " - Trying to resize..."
 						super_free_space=$(${bin}/lptools_static free | grep '^Free space' | awk '{print $NF}')
 						[ "$super_free_space" -gt "$((10 * 1024 * 1024))" ] || {
-							ui_print "! Super device does not have enough free space!"
-							ui_print "! We have tried all known methods!"
+							ui_print "    Super device does not have enough free space!"
+							ui_print "    We have tried all known methods!"
 							gagal=1
 						}
 
@@ -484,9 +577,9 @@ if [ $gagal != 1 ]; then
 							vendor_dlkm_current_size_mb=$(du -bm ${home}/vendor_dlkm.img | awk '{print $1}')
 							vendor_dlkm_target_size_mb=$((vendor_dlkm_current_size_mb + 10))
 							${bin}/resize2fs ${home}/vendor_dlkm.img "${vendor_dlkm_target_size_mb}M" || \
-								ui_print "! Failed to resize vendor_dlkm image!" gagal=1
+								ui_print " - Failed to resize vendor_dlkm image!" gagal=1
 							if [ $gagal != 1 ]; then
-								ui_print "- Resized vendor_dlkm.img size: ${vendor_dlkm_target_size_mb}M."
+								ui_print " - Resized vendor_dlkm.img size: ${vendor_dlkm_target_size_mb}M."
 								# e2fsck again
 								${bin}/e2fsck -f -y ${home}/vendor_dlkm.img
 
@@ -496,9 +589,9 @@ if [ $gagal != 1 ]; then
 						}
 
 						if [ $gagal != 1 ]; then
-							ui_print "- Trying to mount vendor_dlkm image as read-write..."
+							ui_print " - Trying to mount vendor_dlkm image as read-write..."
 							mount ${home}/vendor_dlkm.img $extract_vendor_dlkm_dir -o rw -t ext4 || \
-								ui_print "! Failed to mount vendor_dlkm.img as read-write!" gagal=1
+								ui_print "    Failed to mount vendor_dlkm.img as read-write!" gagal=1
 
 							if [ $gagal != 1 ]; then
 								extract_vendor_dlkm_modules_dir=${extract_vendor_dlkm_dir}/lib/modules
@@ -513,14 +606,14 @@ if [ $gagal != 1 ]; then
 			fi
 
 			if [ $gagal != 1 ]; then
-				ui_print "- Extracting modules..."
+				ui_print " - Extracting modules..."
 				${bin}/7za x -tzip $home/kernel/modules.zip
 				if [ ! -d ${home}/_modules ]; then
-					ui_print "! Extract modules failed!"
+					ui_print "    Extract modules failed!"
 					gagal=1
 				fi
 				if [ $gagal != 1 ]; then
-					ui_print "- Updating /vendor_dlkm image..."
+					ui_print " - Updating /vendor_dlkm image..."
 					cp -f ${home}/_modules/*.ko ${extract_vendor_dlkm_modules_dir}/
 					blocklist_expr=$(echo $no_needed_kos | awk '{ printf "-vE \^\("; for (i = 1; i <= NF; i++) { if (i == NF) printf $i; else printf $i "|"; }; printf "\)" }')
 					mv -f ${extract_vendor_dlkm_modules_dir}/modules.load ${extract_vendor_dlkm_modules_dir}/modules.load.old
@@ -541,10 +634,10 @@ if [ $gagal != 1 ]; then
 							echo 'vendor_dlkm/lib/modules/vertmp 0 0 0644' >> ${extract_vendor_dlkm_dir}/config/vendor_dlkm_fs_config
 						cat ${extract_vendor_dlkm_dir}/config/vendor_dlkm_file_contexts | grep -q 'lib/modules/vertmp' || \
 							echo '/vendor_dlkm/lib/modules/vertmp u:object_r:vendor_file:s0' >> ${extract_vendor_dlkm_dir}/config/vendor_dlkm_file_contexts
-						ui_print "- Repacking /vendor_dlkm image..."
+						ui_print " - Repacking /vendor_dlkm image..."
 						rm -f ${home}/vendor_dlkm.img
 						mkfs_erofs ${extract_vendor_dlkm_dir}/vendor_dlkm ${home}/vendor_dlkm.img || \
-							ui_print "! Failed to repack the vendor_dlkm image!"
+							ui_print "    Failed to repack the vendor_dlkm image!"
 						if [ $gagal != 1 ]; then
 							rm -rf ${extract_vendor_dlkm_dir}
 						fi
@@ -562,11 +655,11 @@ if [ $gagal != 1 ]; then
 
 			# Patch vbmeta
 			for vbmeta_blk in /dev/block/bootdevice/by-name/vbmeta${slot} /dev/block/bootdevice/by-name/vbmeta_system${slot}; do
-			ui_print "- Patching ${vbmeta_blk} ..."
+			ui_print " - Patching ${vbmeta_blk} ..."
 			${bin}/vbmeta-disable-verification $vbmeta_blk || {
-				ui_print "! Failed to patching ${vbmeta_blk}!"
-				ui_print "- If the device won't boot after the installation,"
-				ui_print "  please manually disable AVB in TWRP."
+				ui_print "    Failed to patching ${vbmeta_blk}!"
+				ui_print "    If the device won't boot after the installation,"
+				ui_print "    please manually disable AVB in TWRP."
 			}
 			done
 		fi
@@ -691,6 +784,20 @@ ui_print "--------"
 ui_print "KSU not support thermal module now,"
 ui_print " "
 echo 0 > $D8G_DIR/pure;
+umount /system || true
+umount /vendor || true
+
+ui_print " "
+ui_print " "
+ui_print "Vendor Boot"
+ui_print "------------------------------------"
+vendorboot_main
+
+ui_print " "
+ui_print " "
+ui_print "Vendor Modules"
+ui_print "------------------------------------"
+# Inject
 if [ $install_md = 1 ]; then
 	inject_module
 	if [ $gagal = 1 ]; then
@@ -700,5 +807,7 @@ if [ $install_md = 1 ]; then
 		ui_print " "
 	fi
 fi
-umount /system || true
-umount /vendor || true
+
+ui_print " "
+ui_print "Flashing kernel.... "
+ui_print " "
