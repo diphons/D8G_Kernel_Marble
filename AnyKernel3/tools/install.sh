@@ -258,9 +258,6 @@ repack_rmdk_vendor(){
 	find . | cpio -H newc -o > $vboot_dir/$rdcn;
 
 	cd $vboot_dir;
-	if [ -f $rdcn ]; then
-		rm -fr $vndramdisk
-	fi
 	$bin/magiskboot compress=$vext $rdcn;
 	rm -f $rdcn
 
@@ -268,9 +265,13 @@ repack_rmdk_vendor(){
 		mv $vboot_dir/$rdcn.$vext $vboot_dir/$rdc
 	elif [ -f $rdcn.lz4 ]; then
 		mv $vboot_dir/$rdcn.lz4 $vboot_dir/$rdc
+	fi
+	if [ -f $rdc ]; then
+		rm -f $rdc.$vext
 	else
 		ui_print "   Repacking ramdisk failed. Aborting...";
 		batal=1
+		mv $rdc.$vext $rdc
 	fi
 }
 
@@ -290,7 +291,7 @@ patch_ramdisk(){
 		if [ $batal != 1 ]; then
 			if [ "$vext" ]; then
 				ui_print " - Decompress $rdc.$vext...";
-				cp -f $rdc $rdc.$vext;
+				mv $rdc $rdc.$vext
 				$bin/magiskboot decompress $rdc.$vext $rdcn;
 				if [ -f $rdcn ]; then
 					ui_print "   decompress $rdc.$vext success...";
@@ -298,7 +299,6 @@ patch_ramdisk(){
 					batal=1
 					ui_print "   decompress $rdc.$vext failed...";
 				fi
-				rm -f $rdc.$vext
 			fi;
 			if [ $batal != 1 ]; then
 				if [ -d $vndramdisk ]; then
@@ -319,6 +319,9 @@ patch_ramdisk(){
 								ui_print "   Updating success...";
 							else
 								ui_print "   Updating failed...";
+								if [ -d $vndramdisk ]; then
+									rm -fr $vndramdisk
+								fi
 							fi
 						else
 							batal=1
@@ -333,6 +336,9 @@ patch_ramdisk(){
 			if [ $batal != 1 ]; then
 				repack_rmdk_vendor
 			fi
+		fi
+		if [ -d $vndramdisk ]; then
+			rm -fr $vndramdisk
 		fi
 	fi
 }
@@ -362,7 +368,8 @@ if [ -f $install_dt ]; then
 		mv $install_dt $vboot_dir/dtb
 		
 		#Patch ramdisk
-		
+		#patch_ramdisk
+
 		ui_print " - Repack DTB image"
 		$bin/magiskboot repack -n $vboot_dir/boot.img $vboot_dir/vendor_boot.img;
 		if [ -f $vboot_dir/vendor_boot.img ]; then
