@@ -44,9 +44,11 @@ unsigned int sysctl_input_boost_freq[8];
 unsigned int sysctl_sched_boost_on_input;
 int sysctl_cluster_arr[3][15];
 
+#ifdef CONFIG_BOARD_INGRESS
 unsigned int sysctl_powerkey_input_boost_ms;
 unsigned int sysctl_powerkey_input_boost_freq[8];
 unsigned int sysctl_powerkey_sched_boost_on_input;
+#endif
 /* sysctl nodes accesed by other files */
 unsigned int __read_mostly sysctl_sched_coloc_downmigrate_ns;
 unsigned int __read_mostly sysctl_sched_group_downmigrate_pct;
@@ -441,6 +443,7 @@ unlock_mutex:
 #endif /* CONFIG_PROC_SYSCTL */
 
 struct ctl_table input_boost_sysctls[] = {
+#ifdef CONFIG_BOARD_INGRESS
 	{
 		.procname	= "powerkey_input_boost_ms",
 		.data		= &sysctl_powerkey_input_boost_ms,
@@ -468,6 +471,7 @@ struct ctl_table input_boost_sysctls[] = {
 		.extra1		= SYSCTL_ZERO,
 		.extra2		= SYSCTL_INT_MAX,
 	},
+#endif
 	{
 		.procname	= "input_boost_ms",
 		.data		= &sysctl_input_boost_ms,
@@ -989,13 +993,17 @@ void walt_tunables(void)
 
 	sysctl_input_boost_ms = 40;
 
+#ifdef CONFIG_BOARD_INGRESS
 	sysctl_powerkey_input_boost_ms = 40;
 
 	sysctl_powerkey_sched_boost_on_input = true;
+#endif
 
 	for (i = 0; i < 8; i++)
 		sysctl_input_boost_freq[i] = 0;
 
+#ifdef CONFIG_BOARD_INGRESS
 	for (i = 0; i < 8; i++)
 		sysctl_powerkey_input_boost_freq[i] = 0;
+#endif
 }

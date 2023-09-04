@@ -205,9 +205,11 @@ extern enum sched_boost_policy boost_policy;
 extern unsigned int sysctl_input_boost_ms;
 extern unsigned int sysctl_input_boost_freq[8];
 extern unsigned int sysctl_sched_boost_on_input;
+#ifdef CONFIG_BOARD_INGRESS
 extern unsigned int sysctl_powerkey_input_boost_ms;
 extern unsigned int sysctl_powerkey_input_boost_freq[8];
 extern unsigned int sysctl_powerkey_sched_boost_on_input;
+#endif
 extern unsigned int sysctl_sched_user_hint;
 extern unsigned int sysctl_sched_conservative_pl;
 extern unsigned int sysctl_sched_hyst_min_coloc_ns;

@@ -49,7 +49,9 @@ static DEFINE_PER_CPU(struct cpu_sync, sync_info);
 static struct workqueue_struct *input_boost_wq;
 
 static struct work_struct input_boost_work;
+#ifdef CONFIG_BOARD_INGRESS
 static struct work_struct powerkey_input_boost_work;
+#endif
 
 static bool sched_boost_active;
 
@@ -127,6 +129,7 @@ static void do_input_boost_rem(struct work_struct *work)
 	}
 }
 
+#ifdef CONFIG_BOARD_INGRESS
 static void do_powerkey_input_boost(struct work_struct *work)
 {
 
@@ -160,6 +163,7 @@ static void do_powerkey_input_boost(struct work_struct *work)
 	queue_delayed_work(input_boost_wq, &input_boost_rem,
 					msecs_to_jiffies(sysctl_powerkey_input_boost_ms));
 }
+#endif
 
 static void do_input_boost(struct work_struct *work)
 {
@@ -218,11 +222,15 @@ static void inputboost_input_event(struct input_handle *handle,
 	if (work_pending(&input_boost_work))
 		return;
 
+#ifdef CONFIG_BOARD_INGRESS
 	if (type == EV_KEY && code == KEY_POWER) {
 		queue_work(input_boost_wq, &powerkey_input_boost_work);
 	} else {
+#endif
 		queue_work(input_boost_wq, &input_boost_work);
+#ifdef CONFIG_BOARD_INGRESS
 	}
+#endif
 
 	last_input_time = ktime_to_us(ktime_get());
 }
@@ -340,7 +348,9 @@ int input_boost_init(void)
 	if (!input_boost_wq)
 		return -EFAULT;
 
+#ifdef CONFIG_BOARD_INGRESS
 	INIT_WORK(&powerkey_input_boost_work, do_powerkey_input_boost);
+#endif
 	INIT_WORK(&input_boost_work, do_input_boost);
 	INIT_DELAYED_WORK(&input_boost_rem, do_input_boost_rem);
 
