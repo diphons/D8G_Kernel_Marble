@@ -27,13 +27,5 @@ is_slot_device=1
 ramdisk_compression=auto
 patch_vbmeta_flag=auto
 
-# import functions/variables and setup patching - see for reference (DO NOT REMOVE)
-. tools/ak3-core.sh
-
-dump_boot # use split_boot to skip ramdisk unpack, e.g. for devices with init_boot ramdisk
-
 # Begin Ramdisk Changes
-. /tmp/anykernel/tools/install.sh;
-
-write_boot # use flash_boot to skip ramdisk repack, e.g. for devices with init_boot ramdisk
-## end boot install
+. tools/install.sh;

@@ -3,6 +3,11 @@
 # Import Fstab
 #. /tmp/anykernel/tools/fstab.sh;
 
+# import functions/variables and setup patching - see for reference (DO NOT REMOVE)
+. tools/ak3-core.sh
+
+dump_boot # use split_boot to skip ramdisk unpack, e.g. for devices with init_boot ramdisk
+
 patch_cmdline "skip_override" "";
 
 install_tm=""
@@ -389,6 +394,27 @@ if [ -f $install_dt ]; then
 		ui_print " "
 	fi;
 fi;
+}
+
+vendor_boot_patch(){
+# vendor_boot shell variables
+block=vendor_boot;
+is_slot_device=1;
+ramdisk_compression=auto;
+patch_vbmeta_flag=auto;
+
+# reset for vendor_boot patching
+reset_ak;
+
+if [ -f $install_dt ]; then
+mv $install_dt $home/dtb
+fi
+#if [ -d $home/kernel/ramdisk ]; then mv -f $home/kernel/ramdisk $home/vendor_ramdisk;fi
+# vendor_boot install
+dump_boot; # use split_boot to skip ramdisk unpack, e.g. for dtb on devices with hdr v4 but no vendor_kernel_boot
+
+write_boot; # use flash_boot to skip ramdisk repack, e.g. for dtb on devices with hdr v4 but no vendor_kernel_boot
+## end vendor_boot install
 }
 
 extract_erofs() {
@@ -793,6 +819,9 @@ ui_print " "
 echo 0 > $D8G_DIR/pure;
 umount /system || true
 umount /vendor || true
+
+write_boot # use flash_boot to skip ramdisk repack, e.g. for devices with init_boot ramdisk
+## end boot install
 
 ui_print " "
 ui_print " "
