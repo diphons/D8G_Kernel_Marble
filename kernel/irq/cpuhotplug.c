@@ -69,8 +69,10 @@ static bool migrate_one_irq(struct irq_desc *desc)
 		return false;
 	}
 
+#ifdef CONFIG_IRQ_CRITICAL_AFFINE
 	if (irqd_has_set(d, IRQD_PERF_CRITICAL))
 		return false;
+#endif
 
 	/*
 	 * No move required, if:
@@ -174,8 +176,10 @@ void irq_migrate_all_off_this_cpu(void)
 		}
 	}
 
+#ifdef CONFIG_IRQ_CRITICAL_AFFINE
 	if (!cpumask_test_cpu(smp_processor_id(), cpu_lp_mask))
 		reaffine_perf_irqs(true);
+#endif
 }
 
 static bool hk_should_isolate(struct irq_data *data, unsigned int cpu)
@@ -197,8 +201,10 @@ static void irq_restore_affinity_of_irq(struct irq_desc *desc, unsigned int cpu)
 	struct irq_data *data = irq_desc_get_irq_data(desc);
 	const struct cpumask *affinity = irq_data_get_affinity_mask(data);
 
+#ifdef CONFIG_IRQ_CRITICAL_AFFINE
 	if (irqd_has_set(data, IRQD_PERF_CRITICAL))
 		return;
+#endif
 
 	if (!irqd_affinity_is_managed(data) || !desc->action ||
 	    !irq_data_get_irq_chip(data) || !cpumask_test_cpu(cpu, affinity))
@@ -238,8 +244,10 @@ int irq_affinity_online_cpu(unsigned int cpu)
 	}
 	irq_unlock_sparse();
 
+#ifdef CONFIG_IRQ_CRITICAL_AFFINE
 	if (!cpumask_test_cpu(cpu, cpu_lp_mask))
 		reaffine_perf_irqs(true);
+#endif
 
 	return 0;
 }

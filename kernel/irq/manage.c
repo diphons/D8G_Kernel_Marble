@@ -25,6 +25,7 @@
 
 #include "internals.h"
 
+#ifdef CONFIG_IRQ_CRITICAL_AFFINE
 struct irq_desc_list {
 	struct list_head list;
 	struct irq_desc *desc;
@@ -36,6 +37,7 @@ static DEFINE_RAW_SPINLOCK(perf_irqs_lock);
 static int perf_cpu_index = -1;
 static int prime_cpu_index = -1;
 static bool perf_crit_suspended;
+#endif
 
 #if defined(CONFIG_IRQ_FORCED_THREADING) && !defined(CONFIG_PREEMPT_RT)
 __read_mostly bool force_irqthreads;
@@ -186,9 +188,14 @@ bool irq_can_set_affinity_usr(unsigned int irq)
 {
 	struct irq_desc *desc = irq_to_desc(irq);
 
+#ifdef CONFIG_IRQ_CRITICAL_AFFINE
 	return __irq_can_set_affinity(desc) &&
 		!irqd_affinity_is_managed(&desc->irq_data) &&
 		!irqd_has_set(&desc->irq_data, IRQD_PERF_CRITICAL);
+#else
+	return __irq_can_set_affinity(desc) &&
+		!irqd_affinity_is_managed(&desc->irq_data);
+#endif
 }
 
 /**
@@ -1404,6 +1411,7 @@ setup_irq_thread(struct irqaction *new, unsigned int irq, bool secondary)
 	return 0;
 }
 
+#ifdef CONFIG_IRQ_CRITICAL_AFFINE
 static void add_desc_to_perf_list(struct irq_desc *desc, unsigned int perf_flag)
 {
 	struct irq_desc_list *item;
@@ -1541,6 +1549,7 @@ void reaffine_perf_irqs(bool from_hotplug)
 	}
 	raw_spin_unlock_irqrestore(&perf_irqs_lock, flags);
 }
+#endif
 
 /*
  * Internal function to register an irqaction - typically used to
@@ -1822,11 +1831,13 @@ __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction *new)
 			irqd_set(&desc->irq_data, IRQD_NO_BALANCING);
 		}
 
+#ifdef CONFIG_IRQ_CRITICAL_AFFINE
 		if (new->flags & (IRQF_PERF_AFFINE | IRQF_PRIME_AFFINE)) {
 			affine_one_perf_thread(new);
 			irqd_set(&desc->irq_data, IRQD_PERF_CRITICAL);
 			*old_ptr = new;
 		}
+#endif
 
 		if (!(new->flags & IRQF_NO_AUTOEN) &&
 		    irq_settings_can_autoenable(desc)) {
@@ -1853,7 +1864,9 @@ __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction *new)
 				irq, omsk, nmsk);
 	}
 
+#ifdef CONFIG_IRQ_CRITICAL_AFFINE
 	if (!irqd_has_set(&desc->irq_data, IRQD_PERF_CRITICAL))
+#endif
 		*old_ptr = new;
 
 	irq_pm_install_action(desc, new);
@@ -1961,6 +1974,7 @@ static struct irqaction *__free_irq(struct irq_desc *desc, void *dev_id)
 		action_ptr = &action->next;
 	}
 
+#ifdef CONFIG_IRQ_CRITICAL_AFFINE
 	if (irqd_has_set(&desc->irq_data, IRQD_PERF_CRITICAL)) {
 		struct irq_desc_list *data;
 
@@ -1974,6 +1988,7 @@ static struct irqaction *__free_irq(struct irq_desc *desc, void *dev_id)
 		}
 		raw_spin_unlock(&perf_irqs_lock);
 	}
+#endif
 
 	/* Found it - now remove it from the list of entries: */
 	*action_ptr = action->next;

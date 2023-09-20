@@ -2540,3 +2540,10 @@ source "init/Kconfig.gki-debug"
 config GIT_VERSION
 	int "Default git verison"
 	default 0
+
+config IRQ_CRITICAL_AFFINE
+	bool "IRQ Critical Affine"
+	depends on !IRQ_SBALANCE
+	default y
+	help
+	  This IRQ Critical affine cpumask.
