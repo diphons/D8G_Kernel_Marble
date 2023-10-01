@@ -396,25 +396,41 @@ if [ -f $install_dt ]; then
 fi;
 }
 
+
 vendor_boot_patch(){
 # vendor_boot shell variables
-block=vendor_boot;
-is_slot_device=1;
+block=/dev/block/bootdevice/by-name/vendor_boot;
+is_slot_device=auto;
 ramdisk_compression=auto;
 patch_vbmeta_flag=auto;
+rmdk_dir=$home/kernel/ramdisk
 
-# reset for vendor_boot patching
-reset_ak;
+cp $install_dt $home/dtb
 
-if [ -f $install_dt ]; then
-mv $install_dt $home/dtb
-fi
-#if [ -d $home/kernel/ramdisk ]; then mv -f $home/kernel/ramdisk $home/vendor_ramdisk;fi
-# vendor_boot install
-dump_boot; # use split_boot to skip ramdisk unpack, e.g. for dtb on devices with hdr v4 but no vendor_kernel_boot
+if [ -f $home/dtb ]; then
 
-write_boot; # use flash_boot to skip ramdisk repack, e.g. for dtb on devices with hdr v4 but no vendor_kernel_boot
-## end vendor_boot install
+	# reset for vendor_boot patching
+	reset_ak;
+
+	if [ -d $rmdk_dir ]; then
+		if [ -d $home/ramdisk ]; then
+			rm -rf $home/ramdisk;
+		fi;
+		mv -f $rmdk_dir $home
+	fi
+	#Patch ramdisk dlkm
+	#cp $home/kernel/ramdisk/sched-walt.ko $home/ramdisk/lib/modules/sched-walt.ko
+
+	#if [ -d $home/kernel/ramdisk ]; then mv -f $home/kernel/ramdisk $home/vendor_ramdisk;fi
+	# vendor_boot install
+	dump_boot; # use split_boot to skip ramdisk unpack, e.g. for dtb on devices with hdr v4 but no vendor_kernel_boot
+
+	write_boot; # use flash_boot to skip ramdisk repack, e.g. for dtb on devices with hdr v4 but no vendor_kernel_boot
+	## end vendor_boot install
+else
+	ui_print " - Error while getting DTB image"
+	ui_print "   Skip Inject vendor boot"
+fi;
 }
 
 extract_erofs() {
@@ -820,6 +836,10 @@ echo 0 > $D8G_DIR/pure;
 umount /system || true
 umount /vendor || true
 
+ui_print " "
+ui_print "Flashing kernel.... "
+ui_print " "
+
 write_boot # use flash_boot to skip ramdisk repack, e.g. for devices with init_boot ramdisk
 ## end boot install
 
@@ -843,7 +863,3 @@ if [ $install_md = 1 ]; then
 		ui_print " "
 	fi
 fi
-
-ui_print " "
-ui_print "Flashing kernel.... "
-ui_print " "
