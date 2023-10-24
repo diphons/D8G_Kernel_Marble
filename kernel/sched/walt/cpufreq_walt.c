@@ -272,8 +272,6 @@ static unsigned int get_next_freq(struct waltgov_policy *wg_policy,
 			&glk_freq, policy, &wg_policy->need_freq_update);
 	freq = glk_freq;
 #endif
-	trace_waltgov_next_freq(policy->cpu, util, max, raw_freq, freq, policy->min, policy->max,
-				wg_policy->cached_raw_freq, wg_policy->need_freq_update);
 
 	if (wg_policy->cached_raw_freq && freq == wg_policy->cached_raw_freq &&
 		!wg_policy->need_freq_update)
@@ -445,11 +443,6 @@ static void waltgov_update_freq(struct waltgov_callback *cb, u64 time,
 
 	waltgov_calc_avg_cap(wg_policy, wg_cpu->walt_load.ws,
 			   wg_policy->policy->cur);
-
-	trace_waltgov_util_update(wg_cpu->cpu, wg_cpu->util, wg_policy->avg_cap,
-				wg_cpu->max, wg_cpu->walt_load.nl,
-				wg_cpu->walt_load.pl,
-				wg_cpu->walt_load.rtgb_active, flags);
 
 	if (waltgov_should_update_freq(wg_policy, time) &&
 	    !(flags & WALT_CPUFREQ_CONTINUE)) {
