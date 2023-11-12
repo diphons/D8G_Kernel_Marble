@@ -3573,7 +3573,7 @@ static char *custom_module_blacklist[] = {
     "aw882xx_dlkm", "lzo", "lzo_rle", "zram", "zsmalloc", "atmel_mxt_ts", "nt36xxx_i2c", "nt36xxx_spi", "synaptics_dsx", "focaltech_fts",
 	"hwid", "smem",
     /* Xiaomi Touch */
-	"xiaomi_touch", "goodix_core", "panel_event_notifier",
+	"panel_event_notifier",
     /* Useless logs */
     "cameralog", "f_fs_ipc_log",
     /* Debug */
