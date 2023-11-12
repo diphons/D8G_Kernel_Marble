@@ -719,6 +719,9 @@ fi
 ########## CUSTOM END ##########
 }
 
+#Force inject module dlkm
+install_md=1
+if [ $install_md = 0 ]; then
 if [ -f $home/kernel/modules.zip ]; then
 	ui_print " "
 	ui_print "Inject modules.."
@@ -761,6 +764,7 @@ if [ -f $home/kernel/modules.zip ]; then
 	fi
 else
 	install_md=0
+fi
 fi
 
 umount /data || true
@@ -852,6 +856,9 @@ vendorboot_main
 ui_print " "
 ui_print " "
 ui_print "Vendor Modules"
+ui_print " "
+ui_print "Required : "
+ui_print " - Decrypt (recomended)"
 ui_print "------------------------------------"
 # Inject
 if [ $install_md = 1 ]; then
