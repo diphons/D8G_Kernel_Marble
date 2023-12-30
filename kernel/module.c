@@ -57,6 +57,7 @@
 #include <linux/bsearch.h>
 #include <linux/dynamic_debug.h>
 #include <linux/audit.h>
+#include <linux/xiaomi_hwid_project.h>
 #include <uapi/linux/module.h>
 #include "module-internal.h"
 
@@ -3566,11 +3567,21 @@ int __weak module_frob_arch_sections(Elf_Ehdr *hdr,
 /* module_blacklist is a comma-separated list of module names */
 static char *module_blacklist;
 static char *custom_module_blacklist[] = {
-#if defined(CONFIG_BOARD_MARBLE) || defined(CONFIG_BOARD_INGRESS)
+#if IS_BUILTIN(CONFIG_CRYPTO_LZO)
+    "lzo", "lzo_rle", 
+#endif
+#if IS_BUILTIN(CONFIG_ZRAM)
+    "zram",
+#endif
+#if IS_BUILTIN(CONFIG_ZSMALLOC)
+    "zsmalloc"
+#endif
+};
+static char *custom_module_blacklist_marble[] = {
     /* Not required */
     "qca6750", "cs35l41_dlkm",
     /* Already built into the kernel image */
-    "lzo", "lzo_rle", "zram", "zsmalloc", "atmel_mxt_ts", "nt36xxx_i2c", "nt36xxx_spi", "synaptics_dsx", "focaltech_fts",
+    "atmel_mxt_ts", "nt36xxx_i2c", "nt36xxx_spi", "synaptics_dsx", "focaltech_fts",
 	"hwid", "smem",
     /* Xiaomi Touch */
 	"panel_event_notifier",
@@ -3585,7 +3596,6 @@ static char *custom_module_blacklist[] = {
     "coresight_tgu", "coresight_tmc", "coresight_tpda", "coresight_tpdm",
     /* STM (System Trace Module devices) */
     "stm_console", "stm_core", "stm_ftrace", "stm_p_basic", "stm_p_ost"
-#endif
 };
 static bool blacklisted(const char *module_name)
 {
@@ -3608,6 +3618,10 @@ custom_blacklist:
 	for (i = 0; i < ARRAY_SIZE(custom_module_blacklist); i++)
 		if (!strcmp(module_name, custom_module_blacklist[i]))
 			return true;
+	if (get_xiaomi_hwid_project() == 15)  // 15 represents marble
+		for (i = 0; i < ARRAY_SIZE(custom_module_blacklist_marble); i++)
+			if (!strcmp(module_name, custom_module_blacklist_marble[i]))
+				return true;
 
 	return false;
 }
